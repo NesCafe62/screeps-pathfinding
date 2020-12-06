@@ -204,7 +204,7 @@ Works as original option.
 
 Default: `5`
 
-Pathing cost for container. Only works if `ignoreContainers` is not set. Default value helps to avoid potential creeps that are working there.
+Pathing cost for container. Takes no effect `ignoreContainers` is set. Default value helps to avoid potential creeps that are working there.
 If set to 1 useful to prioritize container when generating path to a source.
 
 
@@ -221,6 +221,15 @@ Default: `offRoads ? 1 : 1.2`
 
 Can be overwritten with another value.
 Works as original option.
+
+
+### `fixPath`
+
+Default: `true`
+
+If set, fixes the path after finding (those annoying one tile step out of the road on turns). Only does it for one current room, so relatively cheap.
+Takes no effect if `heuristicWeight` is `1` or `ignoreRoads` is set or `offRoads` is set or resulting path length is `3` or shorter.
+Can be turned off.
 
 
 ### `maxOps`
