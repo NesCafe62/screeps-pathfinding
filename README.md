@@ -254,6 +254,13 @@ Default: `16`
 Works as original option.
 
 
+### `maxCost`
+
+Default: `undefined`
+
+Works as original option.
+
+
 ### `flee`
 
 Default: `false`
