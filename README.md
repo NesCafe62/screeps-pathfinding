@@ -1,10 +1,10 @@
 A pathfinding solution for screeps. Inspired by Traveler.
 
-#Installation
+# Installation
 
 Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 
-##Implemented features
+## Implemented features
 
 * All options that original `creep.moveTo` has
 * Traffic management (push creeps out of the way or swap with them)
@@ -18,7 +18,7 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 * Caching of terrain and cost matrices
 * Possibility to run moves by room
 
-##Not implemented (maybe will be in a future)
+## Not implemented (maybe will be in a future)
 
 * Hostile avoidance (not just local avoidance)
 * Support for multiple targets
