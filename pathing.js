@@ -121,10 +121,10 @@ class PathingManager {
 						}
 					} else if (Utils.isPosExit(creepPos)) {
 						if (options.onRoomEnter) {
-							options.onRoomEnter(creepRoomName);
+							options.onRoomEnter(creep, creepRoomName);
 						}
 						if (this.onRoomEnter) {
-							this.onRoomEnter(creepRoomName);
+							this.onRoomEnter(creep, creepRoomName);
 						}
 						blocked = true;
 					}
