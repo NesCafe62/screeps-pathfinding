@@ -1,8 +1,10 @@
 A pathfinding solution for screeps. Inspired by Traveler.
 
+
 # Installation
 
 Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
+
 
 # Implemented features
 
@@ -18,11 +20,13 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 * Caching of terrain and cost matrices
 * Possibility to run moves by room
 
+
 # Not implemented (maybe will be in a future)
 
 * Hostile avoidance (not just local avoidance)
 * Support for multiple targets
 * Fix the issue with deadlock. Rarely happend when creeps issue moves in specific order if they use same priority. Workaround - use different priority for creeps targeted to specific job compare to those that are returning back
+
 
 # Usage
 
@@ -84,6 +88,7 @@ module.exports.loop = function() {
 };
 ```
 
+
 ## Running moves by room
 
 ```js
@@ -102,6 +107,7 @@ module.exports.loop = function() {
 	Pathing.cleanup();
 };
 ```
+
 
 ## moveTo(target, options)
 
@@ -124,30 +130,30 @@ Not includes this options from original `creep.moveTo`:
 
 ### `range`
 
-Default: 1
+Default: `1`
 
 Find path to position that is in specified range of a target.
-Supports set range to 0 for unpathable target. In that case range 1 will be used and add target position to the end of the path.
+Supports set range to `0` for unpathable target. In that case range `1` will be used and add target position to the end of the path.
 
 
 ### `priority`
 
-Default: 0
+Default: `0`
 
 Priority for creep movement. Movement for creep with higher priority is preferred, lower priority creeps will be pushed away if possible (this can happen in a sequence). Can accept negative values.
 
 
 ### `moveOffExit`
 
-Default: true
+Default: `true`
 
-Forces path finish position to be on non-exit tile. Only works if specified `range` is more than zero.
+Forces path finish position to be on non-exit tile. Only works if specified `range` is greater than `0`.
 Can be turned off.
 
 
 ### `visualizePathStyle`
 
-Default: undefined
+Default: `undefined`
 
 Works as original option.
 But additional line is displaying from path end to target position using same style but with changed color to light blue.
@@ -155,27 +161,27 @@ But additional line is displaying from path end to target position using same st
 
 ### `ignoreStructures`
 
-Default: false
+Default: `false`
 
 
 ### `ignoreRoads`
 
-Default: false
+Default: `false`
 
 
 ### `offRoads`
 
-Default: false
+Default: `false`
 
 
 ### `ignoreTunnels`
 
-Default: false
+Default: `false`
 
 
 ### `ignoreContainers`
 
-Default: false
+Default: `false`
 
 
 ### `plainCost`
@@ -196,7 +202,7 @@ Works as original option.
 
 ### `containerCost`
 
-Default: 5
+Default: `5`
 
 Pathing cost for container. Only works if `ignoreContainers` is not set. Default value helps to avoid potential creeps that are working there.
 If set to 1 useful to prioritize container when generating path to a source.
@@ -204,7 +210,7 @@ If set to 1 useful to prioritize container when generating path to a source.
 
 ### `costCallback(roomName, matrix)`
 
-Default: undefined
+Default: `undefined`
 
 Works as original option.
 
@@ -219,21 +225,21 @@ Works as original option.
 
 ### `maxOps`
 
-Default: 2000
+Default: `2000`
 
 Works as original option.
 
 
 ### `maxRooms`
 
-Default: 16
+Default: `16`
 
 Works as original option.
 
 
 ### `flee`
 
-Default: false
+Default: `false`
 
 Should work as original option (but have not tested).
 
