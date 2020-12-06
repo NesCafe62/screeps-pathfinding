@@ -79,10 +79,10 @@ module.exports.loop = function() {
 
 	// issuing moves
 	const pos = Game.flags['flag1'].pos;
-	Game.creeps['creep1'].travelTo(pos, {range: 1, priority: 5});
+	Game.creeps['creep1'].moveTo(pos, {range: 1, priority: 5}); // or travelTo if not overrided moveTo
 
 	const pos2 = Game.flags['flag2'].pos;
-	Game.creeps['creep2'].travelTo(pos2, {range: 1});
+	Game.creeps['creep2'].moveTo(pos2, {range: 1}); // or travelTo if not overrided moveTo
 
 	// running all creep moves
 	Pathing.runMoves();
