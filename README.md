@@ -110,7 +110,7 @@ module.exports.loop = function() {
 ```
 
 
-## moveTo(target, options)
+## moveTo(target, ?options)
 
 ### `target`
 
@@ -158,6 +158,13 @@ Default: `undefined`
 
 Works as original option.
 But additional line is displaying from path end to target position using same style but with changed color to light blue.
+
+
+### `avoidRooms`
+
+Default: `[]`
+
+Exclude rooms from pathfinding completely. Creeps will not enter these rooms.
 
 
 ### `ignoreStructures`
@@ -252,4 +259,29 @@ Works as original option.
 Default: `false`
 
 Should work as original option (but have not tested).
+
+
+## Constructor options
+
+### `avoidRooms`
+
+Default: `[]`
+
+Rooms thats should be excluded from pathfinding. Same as `PathingManager.moveTo` `avoidRooms` option but global. In case of both options are set (in `PathingManager.moveTo` and constructor) array will be concatenated and used both sets of rooms to be excluded.
+
+
+### `onRoomEnter(roomName)`
+
+Default: `undefined`
+
+If specified will be called when creep enters a new room (different from previous position).
+For example can be used for hp check if need to be added in heal creep list to be healed by towers.
+
+
+### `getCreepWrokingTarget(creep)`
+
+Default: `undefined`
+
+Shuold return an object with target info `{pos, range, ?priority}`. Will be used for push creeps or avoiding obstacles movement to prioritize positions that are in rnage of the target if creep moves towards it or works near it. If priority is not set will always be pushed if other creep will try to move there.
+In case of no target to prefer return `undefined` or `false`.
 
