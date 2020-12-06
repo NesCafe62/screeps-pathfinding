@@ -59,7 +59,7 @@ class PathingManager {
 
 	constructor(options = {}) {
 		this.onRoomEnter = options.onRoomEnter;
-		this.getCreepWrokingTarget = options.getCreepWrokingTarget;
+		this.getCreepWorkingTarget = options.getCreepWorkingTarget;
 		this.avoidRooms = options.avoidRooms || [];
 		this.matrixCache = new Map();
 		this.roomMoves = new Map();
@@ -135,7 +135,7 @@ class PathingManager {
 			if (newPath) {
 				if (
 					!blocked &&
-					this.getCreepWrokingTarget &&
+					this.getCreepWorkingTarget &&
 					creepRoomName === targetPos.roomName &&
 					creepPos.getRangeTo(targetPos) === range + 1
 				) {
@@ -321,8 +321,8 @@ class PathingManager {
 						direction = move.direction = Utils.getDirection(creepPos, move.pos);
 					} else if (obstacleCreep.fatigue === 0 && !obstacleCreep._hasMove) {
 						let moveDirection, movePos, targetInfo;
-						if (this.getCreepWrokingTarget) {
-							const workingTargetInfo = this.getCreepWrokingTarget(obstacleCreep);
+						if (this.getCreepWorkingTarget) {
+							const workingTargetInfo = this.getCreepWorkingTarget(obstacleCreep);
 							if (workingTargetInfo && workingTargetInfo.pos.roomName === obstacleCreep.room.name) {
 								targetInfo = workingTargetInfo;
 							}
@@ -461,7 +461,7 @@ class PathingManager {
 		];
 
 		for (const creep of creeps) {
-			const targetInfo = this.getCreepWrokingTarget(creep);
+			const targetInfo = this.getCreepWorkingTarget(creep);
 			if (!targetInfo) {
 				continue;
 			}
