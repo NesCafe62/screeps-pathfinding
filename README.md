@@ -49,7 +49,7 @@ if (!Creep.prototype.originalMoveTo) {
 			// or this (convenient way of providing role specific move options):
 			// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
 		};
-		return Pathing.moveTo(target, options);
+		return Pathing.moveTo(this, target, options);
 	};
 }
 if (!PowerCreep.prototype.originalMoveTo) {
@@ -70,7 +70,7 @@ Creep.prototype.travelTo = function(target, defaultOptions = {}) {
 		// or this (convenient way of providing role specific move options):
 		// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
 	};
-	return Pathing.moveTo(target, options);
+	return Pathing.moveTo(this, target, options);
 };
 PowerCreep.prototype.travelTo = Creep.prototype.travelTo;
 */
