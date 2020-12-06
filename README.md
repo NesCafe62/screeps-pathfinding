@@ -103,7 +103,7 @@ module.exports.loop = function() {
 };
 ```
 
-## Pathing.moveTo(target, options)
+## moveTo(target, options)
 
 ### `target`
 
