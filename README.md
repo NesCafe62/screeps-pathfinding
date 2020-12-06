@@ -277,12 +277,12 @@ Default: `[]`
 Rooms thats should be excluded from pathfinding. Same as `PathingManager.moveTo` `avoidRooms` option but global. In case of both options are set (in `PathingManager.moveTo` and constructor) array will be concatenated and used both sets of rooms to be excluded.
 
 
-### `onRoomEnter(roomName)`
+### `onRoomEnter(creep, roomName)`
 
 Default: `undefined`
 
 If specified will be called when creep enters a new room (different from previous position).
-For example can be used for hp check if need to be added in heal creep list to be healed by towers.
+For example can be used for check if hostiles are in the room, or check if need to be added in healCreeps array to be healed by towers.
 
 
 ### `getCreepWorkingTarget(creep)`
