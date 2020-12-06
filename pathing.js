@@ -37,18 +37,18 @@ class TerrainMatrix {
 
 }
 
-const Cache = {
+const TerrainCache = {
 
-	terrainCache: new Map(),
+	cache: new Map(),
 
-	getTerrain(roomName) {
-		let terrain = this.terrainCache.get(roomName);
+	get(roomName) {
+		let terrain = this.cache.get(roomName);
 		if (!terrain) {
-			if (this.terrainCache.size > 20) {
-				this.terrainCache.clear();
+			if (this.cache.size > 20) {
+				this.cache.clear();
 			}
 			terrain = new TerrainMatrix(new Room.Terrain(roomName));
-			this.terrainCache.set(roomName, terrain);
+			this.cache.set(roomName, terrain);
 		}
 		return terrain;
 	},
@@ -408,7 +408,7 @@ class PathingManager {
 	getCreepMovePos(creep, priority, moves, pathEnd) {
 		const {room, pos: creepPos} = creep;
 
-		const terrain = Cache.getTerrain(room.name);
+		const terrain = TerrainCache.get(room.name);
 		const matrix = this.getCostMatrix(room.name);
 		const movePos = Utils.min(
 			this.getAdjacentPositions(creepPos),
@@ -429,7 +429,7 @@ class PathingManager {
 	getCreepPushPos(creep, priority, moves, targetInfo) {
 		const {room, pos: creepPos} = creep;
 
-		const terrain = Cache.getTerrain(room.name);
+		const terrain = TerrainCache.get(room.name);
 		let matrix = this.getCostMatrix(room.name);
 
 		const movePos = Utils.min(
@@ -498,7 +498,7 @@ class PathingManager {
 			containerCost: 5,
 			moveOffExit: true,
 			fixPath: true,
-				heuristicWeight: offRoads ? 1 : 1.2,
+			heuristicWeight: offRoads ? 1 : 1.2,
 			...defaultOptions,
 			roomCallback: roomName => {
 				if (avoidRooms && avoidRooms.includes(roomName)) {
@@ -532,6 +532,7 @@ class PathingManager {
 		}
 		if (
 			options.fixPath &&
+			options.heuristicWeight > 1 &&
 			!options.ignoreRoads &&
 			!options.offRoads &&
 			path.length >= 3
@@ -579,7 +580,7 @@ class PathingManager {
 		}
 
 		const targetRoomName = targetPos.roomName;
-		const terrain = Cache.getTerrain(targetRoomName);
+		const terrain = TerrainCache.get(targetRoomName);
 		const matrix = roomCallback(targetRoomName);
 		const positions = [];
 		for (let x = minX; x <= maxX; x++) {
@@ -601,7 +602,7 @@ class PathingManager {
 	}
 
 	fixPath(path, matrix, roomName) {
-		const terrain = Cache.getTerrain(roomName);
+		const terrain = TerrainCache.get(roomName);
 		const costs = new Array(path.length);
 		for (let i = 0; i < path.length; i++) {
 			const pos = path[i];
@@ -737,7 +738,7 @@ class PathingManager {
 			!ignoreContainers ||
 			swampRoads
 		) {
-			const terrain = Cache.getTerrain(room.name);
+			const terrain = TerrainCache.get(room.name);
 			room.find(FIND_STRUCTURES).forEach( structure => {
 				const {x, y} = structure.pos;
 				if (structure.structureType === STRUCTURE_ROAD) {
