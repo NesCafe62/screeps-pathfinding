@@ -316,6 +316,9 @@ if (!Creep.prototype.originalMoveTo) {
 	};
 }
 
+// after creep finished working do (in role code or wherever it is):
+creep.memory.target = undefined;
+
 const Pathing = new PathingManager({
 	getCreepWorkingTarget(creep) {
 		const target = creep.memory.target;
