@@ -467,7 +467,7 @@ class PathingManager {
 			}
 			if (
 				creep.pos.inRangeTo(targetInfo.pos, targetInfo.range) &&
-				(!targetInfo.priority || targetInfo.priority >= priority)
+				(targetInfo.priority === undefined || targetInfo.priority >= priority)
 			) {
 				const {x, y} = creep.pos;
 				matrix.setFast(x, y, 60);
