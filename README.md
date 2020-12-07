@@ -292,3 +292,46 @@ Default: `undefined`
 Shuold return an object with target info `{pos, range, ?priority}`. Will be used for push creeps or avoiding obstacles movement to prioritize positions that are in rnage of the target if creep moves towards it or works near it. If priority is not set will always be pushed if other creep will try to move there.
 In case of no target to prefer return `undefined` or `false`.
 
+
+Example:
+```js
+if (!Creep.prototype.originalMoveTo) {
+	Creep.prototype.originalMoveTo = Creep.prototype.moveTo;
+	Creep.prototype.moveTo = function(target, defaultOptions = {}) {
+		const options = {
+			range: 1,
+			visualizePathStyle: PATH_STYLE,
+			...defaultOptions,
+			// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
+		};
+		const targetPos = target.pos || target;
+		this.memory.target = {
+			pos: [targetPos.x, targetPos.y, targetPos.roomName],
+			// or can use object (but with array a bit shorter):
+			// pos: {x: targetPos.x, y: targetPos.y, roomName: targetPos.roomName},
+			range: options.range,
+			priority: options.priority // if undefined, will be skipped in serialization
+		};
+		return Pathing.moveTo(this, target, options);
+	};
+}
+
+const Pathing = new PathingManager({
+	getCreepWorkingTarget(creep) {
+		const target = creep.memory.target;
+		if (!target) {
+			return;
+		}
+		const [x, y, roomName] = target.pos;
+		// in case of object:
+		// const {x, y, roomName} = target.pos;
+		return {
+			pos: new RoomPosition(x, y, roomName),
+			range: target.range,
+			priority: target.priority,
+		};
+	}
+});
+```
+
+Despite saving target data in creep's memory is not so great solution for performance. So if you already store target into in creep's memory can just use it in `getCreepWorkingTarget` function
