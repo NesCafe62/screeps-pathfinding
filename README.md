@@ -289,7 +289,7 @@ For example can be used for check if hostiles are in the room, or check if need 
 
 Default: `undefined`
 
-Shuold return an object with target info `{pos, range, ?priority}`. Will be used for push creeps or avoiding obstacles movement to prioritize positions that are in rnage of the target if creep moves towards it or works near it. If priority is not set will always be pushed if other creep will try to move there.
+Shuold return an object with target info `{pos, range, ?priority}`. Will be used for push creeps or avoiding obstacles movement to prioritize positions that are in rnage of the target if creep moves towards it or works near it. If priority is not set or undefined will always be pushed if other creep will try to move there.
 In case of no target to prefer return `undefined` or `false`.
 
 
