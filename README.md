@@ -16,7 +16,7 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 * Fix path (for heuristicHeight > 1, can be turned off)
 * Room enter event (by providing `onRoomEnter` callback)
 * Avoid rooms list (specified globally or by options)
-* Prefer pushed creeps be closer to target stay in ragne of target if working (by providing `getCreepWorkingTarget` callback)
+* Prefer pushed creeps be closer to target and stay in range of target if working (by providing `getCreepWorkingTarget` callback)
 * Caching of terrain and cost matrices
 * Possibility to run moves by room
 
