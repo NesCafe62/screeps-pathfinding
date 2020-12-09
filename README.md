@@ -89,6 +89,8 @@ module.exports.loop = function() {
 };
 ```
 
+> Mote: You can modify default values for `options` inside Creep.prototype.moveTo. They will be applied to all `moveTo` calls. But still remain possiility to be overrided if passed explicitely to `moveTo`.
+
 
 ## Running moves by room
 
