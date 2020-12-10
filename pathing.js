@@ -319,7 +319,7 @@ class PathingManager {
 						}
 						move.pos = this.getCreepMovePos(creep, priority, moves, pathEnd);
 						direction = move.direction = Utils.getDirection(creepPos, move.pos);
-					} else if (obstacleCreep.fatigue === 0 && !obstacleCreep._hasMove) {
+					} else if (!obstacleCreep.fatigue && !obstacleCreep._hasMove) {
 						let moveDirection, movePos, targetInfo;
 						if (this.getCreepWorkingTarget) {
 							const workingTargetInfo = this.getCreepWorkingTarget(obstacleCreep);
