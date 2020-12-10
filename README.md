@@ -27,6 +27,8 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 * Hostile avoidance (not just local avoidance)
 * Swap with slow moving creep (> 1 ticks per tile) if it moves the same direction
 * Support for multiple targets
+* Reuse current path when stepped off path (instead of searching path again)
+* Option to check blocked creeps each tick, not losing 1 tick on each bump
 * Fix the issue with deadlock. Rarely happend when creeps issue moves in specific order if they use same priority. Workaround - use different priority for creeps targeted to specific job compare to those that are returning back
 
 
