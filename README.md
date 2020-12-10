@@ -25,6 +25,7 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 
 * Find route with whitelist of rooms for more efficient long range movement
 * Hostile avoidance (not just local avoidance)
+* Swap with slow moving creep (> 1 ticks per tile) if it moves the same direction
 * Support for multiple targets
 * Fix the issue with deadlock. Rarely happend when creeps issue moves in specific order if they use same priority. Workaround - use different priority for creeps targeted to specific job compare to those that are returning back
 
