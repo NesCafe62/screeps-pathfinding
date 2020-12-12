@@ -102,6 +102,15 @@ module.exports.loop = function() {
 > Note: You can modify default values for `options` inside Creep.prototype.moveTo. If you want them to be applied for all `moveTo` calls. But still remain possiility to be overrided if passed explicitely to `moveTo`.
 
 
+Then call it like this:
+```js
+Game.creeps['creep1'].moveTo(target1);
+Game.creeps['creep2'].moveTo(target2, {range: 0, priority: 5});
+```
+
+Ensure you use higher priority for miners like `priority: 5`, especially if they are slow (moving 1 tile per multiple ticks on road).
+
+
 ## Running moves by room
 
 ```js
