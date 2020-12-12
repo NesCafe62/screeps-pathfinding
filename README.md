@@ -35,6 +35,9 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 
 # Usage
 
+Caution! The code below will use `range: 1` for default value. It is different from what is original `Creep.moveTo` has. (Traveler also has default `range: 1`, and I think it is more clear to specify `range: 0` explicitely in case you need it)
+But you can change it to be `range: 0` or other value.
+
 ```js
 const Pathing = require('pathing');
 
@@ -93,7 +96,7 @@ module.exports.loop = function() {
 };
 ```
 
-> Mote: You can modify default values for `options` inside Creep.prototype.moveTo. If you want them to be applied for all `moveTo` calls. But still remain possiility to be overrided if passed explicitely to `moveTo`.
+> Note: You can modify default values for `options` inside Creep.prototype.moveTo. If you want them to be applied for all `moveTo` calls. But still remain possiility to be overrided if passed explicitely to `moveTo`.
 
 
 ## Running moves by room
