@@ -35,7 +35,10 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 
 # Usage
 
-Caution! The code below will use `range: 1` for default value. It is different from what is original `Creep.moveTo` has. (Traveler also has default `range: 1`, and I think it is more clear to specify `range: 0` explicitely in case you need it)
+Caution! The code below will use `range: 1` for default value.
+
+It is different from what is original `Creep.moveTo` has. (Traveler also has default `range: 1`, and I think it is more clear to specify `range: 0` explicitely in case you need it)
+
 But you can change it to be `range: 0` or other value.
 
 ```js
