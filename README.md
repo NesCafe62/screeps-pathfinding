@@ -44,6 +44,8 @@ But you can change it to be `range: 0` or other value.
 ```js
 const Pathing = require('pathing');
 
+global.IN_RANGE = 1;
+
 const PATH_STYLE = {stroke: '#fff', lineStyle: 'dashed', opacity: 0.5};
 
 if (!Creep.prototype.originalMoveTo) {
@@ -59,6 +61,9 @@ if (!Creep.prototype.originalMoveTo) {
 			// or this (convenient way of providing role specific move options):
 			// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
 		};
+		if (this.pos.isInRangeTo(target, options.range)) {
+			return IN_RANGE;
+		}
 		return Pathing.moveTo(this, target, options);
 	};
 }
@@ -80,6 +85,9 @@ Creep.prototype.travelTo = function(target, defaultOptions = {}) {
 		// or this (convenient way of providing role specific move options):
 		// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
 	};
+	if (this.pos.isInRangeTo(target, options.range)) {
+		return IN_RANGE;
+	}
 	return Pathing.moveTo(this, target, options);
 };
 PowerCreep.prototype.travelTo = Creep.prototype.travelTo;
@@ -89,10 +97,16 @@ module.exports.loop = function() {
 
 	// issuing moves
 	const pos = Game.flags['flag1'].pos;
-	Game.creeps['creep1'].moveTo(pos, {range: 1, priority: 5}); // or travelTo if not overrided moveTo
+	const creep1 = Game.creeps['creep1'];
+	if (creep1.moveTo(pos, {range: 1, priority: 5}) === IN_RANGE) { // or travelTo if not overrided moveTo
+		// do work
+	}
 
 	const pos2 = Game.flags['flag2'].pos;
-	Game.creeps['creep2'].moveTo(pos2, {range: 1}); // or travelTo if not overrided moveTo
+	const creep2 = Game.creeps['creep2'];
+	if (creep2.moveTo(pos2, {range: 1}) === IN_RANGE) { // or travelTo if not overrided moveTo
+		// do work
+	}
 
 	// running all creep moves
 	Pathing.runMoves();
@@ -101,14 +115,31 @@ module.exports.loop = function() {
 
 > Note: You can modify default values for `options` inside Creep.prototype.moveTo. If you want them to be applied for all `moveTo` calls. But still remain possiility to be overrided if passed explicitely to `moveTo`.
 
-
-Then call it like this:
-```js
-Game.creeps['creep1'].moveTo(target1);
-Game.creeps['creep2'].moveTo(target2, {range: 0, priority: 5});
-```
-
 Ensure you use higher priority for miners like `priority: 5`, especially if they are slow (moving 1 tile per multiple ticks on road).
+
+
+## Move to room
+```js
+const Utils = require('pathing.utils');
+
+global.IN_ROOM = 2;
+
+Creep.prototype.moveToRoom = function(roomName, options = {}) {
+	if (this.room.name === roomName && !Utils.isPosExit(this.pos)) {
+		return IN_ROOM;
+	}
+	return this.moveTo(new RoomPosition(25, 25, roomName), {...options, range: 23});
+
+	// or travelTo (if you choose to use it):
+	// return this.travelTo(new RoomPosition(25, 25, roomName), {...options, range: 23});
+};
+
+// usage:
+const creep1 = Game.creeps['creep1'];
+if (creep1.moveToRoom('E30N30') === IN_ROOM) {
+	// search target logic, move and work
+}
+```
 
 
 ## Running moves by room
