@@ -24,6 +24,7 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 # Not implemented (maybe will be in a future)
 
 * Find route with whitelist of rooms for more efficient long range movement
+* Fix behavior when `moveTo` as called multiple times for creep during the tick (should overwrite previous)
 * Hostile avoidance (not just local avoidance)
 * Swap with slow moving creep (> 1 ticks per tile) if it moves the same direction
 * Support for multiple targets
