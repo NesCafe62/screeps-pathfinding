@@ -343,4 +343,4 @@ const Pathing = new PathingManager({
 });
 ```
 
-Despite saving target data in creep's memory is not so great solution for performance. So if you already store target into in creep's memory can just use it in `getCreepWorkingTarget` function
+Despite saving target data in creep's memory in each tick is not so great solution for performance. So if you already store target into in creep's memory can just use it in `getCreepWorkingTarget` function
