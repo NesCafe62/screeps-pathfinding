@@ -781,9 +781,95 @@ class PathingManager {
 
 }
 
-const Pathing = new PathingManager();
 
-// uncomment this line to register PathingManager globally
-// global.Pathing = Pathing;
+// ============================
+// PathignManager configuration
+// can customize for your own needs
 
+
+// default visualize path style:
+const DEFAUL_PATH_STYLE = {stroke: '#fff', lineStyle: 'dashed', opacity: 0.5};
+
+// default range:
+const DEFAUL_RANGE = 1;
+
+const Pathing = new PathingManager({
+
+	// list of rooms to avoid globally:
+	/* avoidRooms: [], */
+
+	// this event will be called every time creep enters new room:
+	/* onRoomEnter(creep, roomName) {
+		console.log(`Creep ${creep.name} entered room ${roomName}`);
+	}, */
+
+	// manager will use this function to make creeps stay in range of their target
+	getCreepWorkingTarget(creep) {
+		const target = creep.memory._t;
+		if (!target) {
+			return;
+		}
+		const [x, y, roomName] = target.pos;
+		return {
+			pos: new RoomPosition(x, y, roomName),
+			range: target.range,
+			priority: target.priority,
+		};
+	}
+
+});
 module.exports = Pathing;
+
+
+global.IN_RANGE = 1;
+global.IN_ROOM = 2;
+
+if (!Creep.prototype.originalMoveTo) {
+	Creep.prototype.originalMoveTo = Creep.prototype.moveTo;
+	Creep.prototype.moveTo = function(target, defaultOptions = {}) {
+		const options = {
+			range: DEFAULT_RANGE,
+			visualizePathStyle: DEFAUL_PATH_STYLE,
+			...defaultOptions,
+			// convenient way of providing role specific movement options (remove previous line to use):
+			// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
+		};
+		if (this.pos.inRangeTo(target, options.range)) {
+			return IN_RANGE;
+		}
+		
+		// >> this part is optional. can remove it if you have own implementation of "getCreepWorkingTarget"
+		const targetPos = target.pos || target;
+		this.memory._t = {
+			pos: [targetPos.x, targetPos.y, targetPos.roomName],
+			range: options.range,
+			priority: options.priority
+		};
+		// <<
+
+		return Pathing.moveTo(this, target, options);
+	};
+}
+if (!PowerCreep.prototype.originalMoveTo) {
+	PowerCreep.prototype.originalMoveTo = PowerCreep.prototype.moveTo;
+	PowerCreep.prototype.moveTo = Creep.prototype.moveTo;
+}
+
+
+Creep.prototype.moveToRoom = function(roomName, options = {}) {
+	if (this.room.name === roomName && !Utils.isPosExit(this.pos)) {
+		return IN_ROOM;
+	}
+	return this.moveTo(new RoomPosition(25, 25, roomName), {...options, range: 23});
+};
+PowerCreep.prototype.moveToRoom = Creep.prototype.moveToRoom;
+
+
+Creep.prototype.clearTarget = function() {
+	this.memory._t = undefined;
+};
+PowerCreep.prototype.clearTarget = Creep.prototype.clearTarget;
+
+
+// comment this line to disable registering PathingManager globally
+global.Pathing = Pathing;
