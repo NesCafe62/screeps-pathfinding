@@ -286,6 +286,15 @@ Default: `undefined`
 Works as original option.
 
 
+### `routeCallback(roomName)`
+
+Default: `(roomName) => isHighwayRoom(roomName) ? 1 : 2.5`
+
+Will be used for find route between rooms if room distance is >= 3. Can be used to prioritize rooms, higher values means more priority. To exclude a room use `Infinity`.
+
+`avoidRooms` (both global and specified in `moveTo`) will also be applied to find route.
+
+
 ### `heuristicWeight`
 
 Default: `offRoads ? 1 : 1.2`
