@@ -20,16 +20,22 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 * Caching of terrain and cost matrices
 * Possibility to run moves by room
 
+update 13.12.2020:
+
+* Find route for efficient long range movement
+
+
+# Implemneted fixes
+* When `moveTo` as called multiple times for creep during the tick, it will overwrite previous move (no extra intent cost)
+
 
 # Not implemented (maybe will be in a future)
 
-* Find route with whitelist of rooms for more efficient long range movement
-* Fix behavior when `moveTo` as called multiple times for creep during the tick (should overwrite previous)
 * Hostile avoidance (not just local avoidance)
 * Swap with slow moving creep (> 1 ticks per tile) if it moves the same direction
 * Support for multiple targets
 * Reuse current path when stepped off path (instead of searching path again)
-* Option to force check blocked creeps each tick (more precise, but more CPU cost)
+* Option to force the search of potentially blocking creeps each tick (more precise, but more CPU cost)
 * Fix the issue with deadlock. Rarely happen when creeps issue moves in specific order if they use same priority. Workaround: use different priority for creeps targeted to specific job compare to those that are returning back
 
 
@@ -112,9 +118,6 @@ module.exports.loop = function() {
 	
 	// run for another room
 	Pathing.runMovesRoom('E31N30');
-	
-	// cleanup moves
-	Pathing.cleanup();
 };
 ```
 
