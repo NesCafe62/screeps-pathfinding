@@ -95,11 +95,14 @@ creep1.clearWorkingTarget();
 
 Using `containerCost: 1` will make existing containers be same cost `1` as default for roads.
 
+FindRoute is false for better accuracy.
+
 ```js
 const path = Pathing.findPath(remoteSourcePos, room.storage.pos, {
 	heuristicWeight: 1,
 	maxOps: 6000,
-	containerCost: 1
+	containerCost: 1,
+	findRoute: false
 });
 // result: array of RoomPosition-s
 ```
@@ -218,6 +221,13 @@ But additional line is displaying from path end to target position using same st
 Default: `[]`
 
 Exclude rooms from pathfinding completely. Creeps will not enter these rooms.
+
+
+## `findRoute`
+
+Default: `true`
+
+Use find route if room distance >= 3.
 
 
 ### `ignoreStructures`
