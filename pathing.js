@@ -788,10 +788,10 @@ class PathingManager {
 
 
 // default visualize path style:
-const DEFAUL_PATH_STYLE = {stroke: '#fff', lineStyle: 'dashed', opacity: 0.5};
+const DEFAULT_PATH_STYLE = {stroke: '#fff', lineStyle: 'dashed', opacity: 0.5};
 
 // default range:
-const DEFAUL_RANGE = 1;
+const DEFAULT_RANGE = 1;
 
 const Pathing = new PathingManager({
 
@@ -829,7 +829,7 @@ if (!Creep.prototype.originalMoveTo) {
 	Creep.prototype.moveTo = function(target, defaultOptions = {}) {
 		const options = {
 			range: DEFAULT_RANGE,
-			visualizePathStyle: DEFAUL_PATH_STYLE,
+			visualizePathStyle: DEFAULT_PATH_STYLE,
 			...defaultOptions,
 			// convenient way of providing role specific movement options (remove previous line to use):
 			// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
