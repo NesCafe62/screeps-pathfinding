@@ -166,7 +166,15 @@ const Pathing = new PathingManager({
 ```
 
 
-## Pathing.moveTo(target, ?options)
+## Pathing.moveTo(target, ?options) / Creep.moveTo(target, ?options)
+
+Return values:
+`OK` - successfully scheduled moving to target
+`ERR_NO_PATH` - found path is emppty
+
+if called via overrided `Creep.moveTo`
+`IN_RANGE` - creep is in range of target and not on exit tile, if `moveOffExit` option is not disabled
+
 
 ### `target`
 
