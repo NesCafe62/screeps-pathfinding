@@ -35,7 +35,9 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 
 # Usage
 
-Note: By default pathfinder uses `range: 1`. To change this behavior set another value for `const DEFAULT_RANGE` in the configuration section of `pathing.js` (at the bottom).
+Note: By default pathfinder uses `range: 1`.
+
+(Can change this value in the configuration section of `pathing.js`, at the bottom: `const DEFAULT_RANGE = ...`)
 
 ```js
 const Pathing = require('pathing');
