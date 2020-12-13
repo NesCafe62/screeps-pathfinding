@@ -865,10 +865,10 @@ Creep.prototype.moveToRoom = function(roomName, options = {}) {
 PowerCreep.prototype.moveToRoom = Creep.prototype.moveToRoom;
 
 
-Creep.prototype.clearTarget = function() {
+Creep.prototype.clearWorkingTarget = function() {
 	this.memory._t = undefined;
 };
-PowerCreep.prototype.clearTarget = Creep.prototype.clearTarget;
+PowerCreep.prototype.clearWorkingTarget = Creep.prototype.clearWorkingTarget;
 
 
 // comment this line to disable registering PathingManager globally
