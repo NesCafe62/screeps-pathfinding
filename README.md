@@ -162,7 +162,7 @@ module.exports.loop = function() {
 ```
 
 
-## moveTo(target, ?options)
+## Pathing.moveTo(target, ?options)
 
 ### `target`
 
