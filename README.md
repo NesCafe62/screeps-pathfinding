@@ -223,7 +223,7 @@ Default: `[]`
 Exclude rooms from pathfinding completely. Creeps will not enter these rooms.
 
 
-## `findRoute`
+### `findRoute`
 
 Default: `true`
 
