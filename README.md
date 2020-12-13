@@ -35,76 +35,23 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 
 # Usage
 
-Caution! The code below will use `range: 1` for default value.
-
-It is different from what is original `Creep.moveTo` has. (Traveler also has default `range: 1`, and I think it is more clear to specify `range: 0` explicitely in case you need it)
-
-But you can change it to be `range: 0` or other value.
+Note: By default pathfinder uses `range: 1`. To change this behavior set another value for `const DEFAULT_RANGE` in the configuration section of `pathing.js` (at the bottom).
 
 ```js
 const Pathing = require('pathing');
-
-global.IN_RANGE = 1;
-
-const PATH_STYLE = {stroke: '#fff', lineStyle: 'dashed', opacity: 0.5};
-
-if (!Creep.prototype.originalMoveTo) {
-	Creep.prototype.originalMoveTo = Creep.prototype.moveTo;
-	Creep.prototype.moveTo = function(target, defaultOptions = {}) {
-		const options = {
-			range: 1,
-			visualizePathStyle: PATH_STYLE,
-
-			// then this:
-			...defaultOptions,
-
-			// or this (convenient way of providing role specific move options):
-			// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
-		};
-		if (this.pos.inRangeTo(target, options.range)) {
-			return IN_RANGE;
-		}
-		return Pathing.moveTo(this, target, options);
-	};
-}
-if (!PowerCreep.prototype.originalMoveTo) {
-	PowerCreep.prototype.originalMoveTo = PowerCreep.prototype.moveTo;
-	PowerCreep.prototype.moveTo = Creep.prototype.moveTo;
-}
-
-// or this way (if you don't want to replace original moveTo):
-/*
-Creep.prototype.travelTo = function(target, defaultOptions = {}) {
-	const options = {
-		range: 1,
-		visualizePathStyle: PATH_STYLE,
-
-		// then this:
-		...defaultOptions,
-
-		// or this (convenient way of providing role specific move options):
-		// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
-	};
-	if (this.pos.inRangeTo(target, options.range)) {
-		return IN_RANGE;
-	}
-	return Pathing.moveTo(this, target, options);
-};
-PowerCreep.prototype.travelTo = Creep.prototype.travelTo;
-*/
 
 module.exports.loop = function() {
 
 	// issuing moves
 	const pos = Game.flags['flag1'].pos;
 	const creep1 = Game.creeps['creep1'];
-	if (creep1.moveTo(pos, {range: 1, priority: 5}) === IN_RANGE) { // or travelTo if not overrided moveTo
+	if (creep1.moveTo(pos, {range: 1, priority: 5}) === IN_RANGE) {
 		// do work
 	}
 
 	const pos2 = Game.flags['flag2'].pos;
 	const creep2 = Game.creeps['creep2'];
-	if (creep2.moveTo(pos2, {range: 1}) === IN_RANGE) { // or travelTo if not overrided moveTo
+	if (creep2.moveTo(pos2, {range: 1}) === IN_RANGE) {
 		// do work
 	}
 
@@ -113,32 +60,27 @@ module.exports.loop = function() {
 };
 ```
 
-> Note: You can modify default values for `options` inside Creep.prototype.moveTo. If you want them to be applied for all `moveTo` calls. But still remain possiility to be overrided if passed explicitely to `moveTo`.
-
-Ensure you use higher priority for miners like `priority: 5`, especially if they are slow (moving 1 tile per multiple ticks on road).
+Note: Ensure you use higher priority for miners like `priority: 5`, especially if they are slow (moving 1 tile per multiple ticks on road).
 
 
 ## Move to room
 ```js
-const Utils = require('pathing.utils');
-
-global.IN_ROOM = 2;
-
-Creep.prototype.moveToRoom = function(roomName, options = {}) {
-	if (this.room.name === roomName && !Utils.isPosExit(this.pos)) {
-		return IN_ROOM;
-	}
-	return this.moveTo(new RoomPosition(25, 25, roomName), {...options, range: 23});
-
-	// or travelTo (if you choose to use it):
-	// return this.travelTo(new RoomPosition(25, 25, roomName), {...options, range: 23});
-};
-
-// usage:
 const creep1 = Game.creeps['creep1'];
 if (creep1.moveToRoom('E30N30') === IN_ROOM) {
 	// search target logic, move and work
 }
+```
+
+
+## Clearing working target
+
+When creep stopped working call `clearWorkingTarget` (maybe not needed if you use own implementation of `getCreepWorkingTarget`).
+
+This will prevent traffic manager from pushing the creep towards it's last target if creep is not working anymore.
+
+```js
+const creep1 = Game.creeps['creep1'];
+creep1.clearWorkingTarget();
 ```
 
 
@@ -159,6 +101,47 @@ module.exports.loop = function() {
 	// cleanup moves
 	Pathing.cleanup();
 };
+```
+
+
+## Configuration
+
+There is a configuration section at the bottom of `pathing.js` file.
+
+Feel free to change the values of `DEFAUL_RANGE`, `DEFAUL_PATH_STYLE` and `getCreepWorkingTarget` implementation.
+
+```js
+// default visualize path style:
+const DEFAUL_PATH_STYLE = {stroke: '#fff', lineStyle: 'dashed', opacity: 0.5};
+
+// default range:
+const DEFAUL_RANGE = 1;
+
+const Pathing = new PathingManager({
+
+	// list of rooms to avoid globally:
+	/* avoidRooms: [], */
+
+	// this event will be called every time creep enters new room:
+	/* onRoomEnter(creep, roomName) {
+		console.log(`Creep ${creep.name} entered room ${roomName}`);
+	}, */
+
+	// manager will use this function to make creeps stay in range of their target
+	getCreepWorkingTarget(creep) {
+		const target = creep.memory._t;
+		if (!target) {
+			return;
+		}
+		const [x, y, roomName] = target.pos;
+		return {
+			pos: new RoomPosition(x, y, roomName),
+			range: target.range,
+			priority: target.priority,
+		};
+	}
+
+});
 ```
 
 
@@ -339,54 +322,9 @@ For example can be used for check if hostiles are in the room, or check if need 
 
 ### `getCreepWorkingTarget(creep)`
 
-Default: `undefined`
+Default (in constructor argument): `undefined`
+
+Note: configuration section contains default implementation of `getCreepWorkingTarget`. You can change it to preferred one.
 
 Shuold return an object with target info `{pos, range, ?priority}`. Will be used for push creeps or avoiding obstacles movement to prioritize positions that are in rnage of the target if creep moves towards it or works near it. If priority is not set or undefined will always be pushed if other creep will try to move there.
 In case of no target to prefer return `undefined` or `false`.
-
-
-Example:
-```js
-if (!Creep.prototype.originalMoveTo) {
-	Creep.prototype.originalMoveTo = Creep.prototype.moveTo;
-	Creep.prototype.moveTo = function(target, defaultOptions = {}) {
-		const options = {
-			range: 1,
-			visualizePathStyle: PATH_STYLE,
-			...defaultOptions,
-			// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
-		};
-		const targetPos = target.pos || target;
-		this.memory.target = {
-			pos: [targetPos.x, targetPos.y, targetPos.roomName],
-			// or can use object (but with array a bit shorter):
-			// pos: {x: targetPos.x, y: targetPos.y, roomName: targetPos.roomName},
-			range: options.range,
-			priority: options.priority // if undefined, will be skipped in serialization
-		};
-		return Pathing.moveTo(this, target, options);
-	};
-}
-
-// after creep finished working do (in role code or wherever it is):
-creep.memory.target = undefined;
-
-const Pathing = new PathingManager({
-	getCreepWorkingTarget(creep) {
-		const target = creep.memory.target;
-		if (!target) {
-			return;
-		}
-		const [x, y, roomName] = target.pos;
-		// in case of object:
-		// const {x, y, roomName} = target.pos;
-		return {
-			pos: new RoomPosition(x, y, roomName),
-			range: target.range,
-			priority: target.priority,
-		};
-	}
-});
-```
-
-Despite saving target data in creep's memory in each tick is not so great solution for performance. So if you already store target into in creep's memory can just use it in `getCreepWorkingTarget` function
