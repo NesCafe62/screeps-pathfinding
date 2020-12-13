@@ -20,6 +20,8 @@ const TERRAIN_COST = {
 	[TERRAIN_MASK_WALL | TERRAIN_MASK_SWAMP]: 255,
 };
 
+const ROOM_PATTERN_HIGHWAY = /^[WE][0-9]?0[NS][0-9]?0$/;
+
 class TerrainMatrix {
 
 	constructor(terrain) {
@@ -63,6 +65,7 @@ class PathingManager {
 		this.avoidRooms = options.avoidRooms || [];
 		this.matrixCache = new Map();
 		this.roomMoves = new Map();
+		this.lastMoveTime = Game.time;
 	}
 
 	clearMatrixCache() {
@@ -196,9 +199,12 @@ class PathingManager {
 				pos: undefined,
 				pathEnd,
 			};
-			creep._hasMove = true;
-
+			if (this.lastMoveTime !== Game.time) {
+				this.lastMoveTime = Game.time;
+				this.cleanup();
+			}
 			this.insertMove(creepRoomName, move);
+			creep._hasMove = true;
 		}
 
 		if (options.visualizePathStyle) {
@@ -243,12 +249,24 @@ class PathingManager {
 	// moves
 	insertMove(roomName, move) {
 		const moves = this.getMoves(roomName);
+		if (move.creep._hasMove) {
+			this.removeMove(moves, move.creep.name);
+		}
 		const priority = move.priority;
 		let i = moves.length;
 		while (i > 0 && moves[i - 1].priority < priority) {
 			i--;
 		}
 		moves.splice(i, 0, move);
+	}
+
+	removeMove(moves, creepName) {
+		for (let i = 0; i < moves.length; i++) {
+			if (moves[i].creep.name === creepName) {
+				moves.splice(i, 1);
+				break;
+			}
+		}
 	}
 
 	getMoves(roomName) {
@@ -280,7 +298,7 @@ class PathingManager {
 		} catch (error) {
 			Utils.logError(error);
 		}
-		this.cleanup();
+		// this.cleanup();
 	}
 
 	runMovesRoom(roomName) {
@@ -320,6 +338,9 @@ class PathingManager {
 						move.pos = this.getCreepMovePos(creep, priority, moves, pathEnd);
 						direction = move.direction = Utils.getDirection(creepPos, move.pos);
 					} else if (!obstacleCreep.fatigue && !obstacleCreep._hasMove) {
+						// assuming moves will always run in from higher priority to lower, can skip priority check.
+						// full version of this condition was:
+					// } else if (!obstacleCreep.fatigue && (!obstacleCreep._hasMove || priority > blockingCreep.move.priority)) {
 						let moveDirection, movePos, targetInfo;
 						if (this.getCreepWorkingTarget) {
 							const workingTargetInfo = this.getCreepWorkingTarget(obstacleCreep);
@@ -485,12 +506,32 @@ class PathingManager {
 		) {
 			return [targetPos];
 		} */
-		const {ignoreRoads, offRoads, range = 1, costCallback} = defaultOptions;
+		const {
+			ignoreRoads, offRoads, range = 1,
+			costCallback, routeCallback, findRoute = true
+		} = defaultOptions;
+
 		let avoidRooms = defaultOptions.avoidRooms || [];
 		if (this.avoidRooms) {
 			avoidRooms = [...avoidRooms, ...this.avoidRooms];
 		}
+
 		const startRoomName = startPos.roomName;
+		const targetRoomName = targetPos.roomName;
+		let routeRooms;
+		if (
+			findRoute &&
+			startRoomName !== targetRoomName &&
+			this.getRoomDistance(startPos, targetPos) >= 3
+		) {
+			const route = this.findRoute(startRoomName, targetRoomName, {avoidRooms, routeCallback});
+			if (route.length > 0) {
+				routeRooms = route.map(item => item.room);
+			} else {
+				console.log(`Pathfinder: Could not find route from ${startRoomName} to ${targetRoomName}. source: ${startPos} target: ${targetPos}`);
+			}
+		}
+
 		let startRoomMatrix;
 		const options = {
 			plainCost: (ignoreRoads || offRoads) ? 1 : 2,
@@ -501,7 +542,11 @@ class PathingManager {
 			heuristicWeight: offRoads ? 1 : 1.2,
 			...defaultOptions,
 			roomCallback: roomName => {
-				if (avoidRooms && avoidRooms.includes(roomName)) {
+				if (routeRooms) {
+					if (!routeRooms.includes(roomName)) {
+						return false;
+					}
+				} else if (avoidRooms.length > 0 && avoidRooms.includes(roomName)) {
 					return false;
 				}
 				let matrix = this.getCostMatrix(roomName, options);
@@ -546,6 +591,30 @@ class PathingManager {
 			}
 		}
 		return path;
+	}
+
+	findRoute(startPos, targetPos, options = {}) {
+		const routeCallback = options.routeCallback || ((roomName) => {
+			return roomName.match(ROOM_PATTERN_HIGHWAY) ? 1 : 2.5;
+		});
+		const avoidRooms = options.avoidRooms || [];
+		return Game.map.findRoute(startPos, targetPos, {
+			routeCallback: roomName => {
+				if (avoidRooms.length > 0 && avoidRooms.includes(roomName)) {
+					return Infinity;
+				}
+				return routeCallback(roomName);
+			}
+		});
+	}
+
+	getRoomDistance(startPos, targetPos) {
+		const startPackedRoom = startPos.__packedPos >>> 16;
+		const targetPackedRoom = targetPos.__packedPos >>> 16;
+
+		const dx = (targetPackedRoom >>> 8) - (startPackedRoom >>> 8);
+		const dy = (targetPackedRoom & 0xff) - (startPackedRoom & 0xff);
+		return Math.max(Math.abs(dx), Math.abs(dy));
 	}
 
 	getTargetRangePositions(targetPos, range, options) {
@@ -837,7 +906,7 @@ if (!Creep.prototype.originalMoveTo) {
 		if (this.pos.inRangeTo(target, options.range)) {
 			return IN_RANGE;
 		}
-		
+
 		// >> this part is optional. can remove it if you have own implementation of "getCreepWorkingTarget"
 		const targetPos = target.pos || target;
 		this.memory._t = {
