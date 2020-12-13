@@ -83,6 +83,19 @@ const creep1 = Game.creeps['creep1'];
 creep1.clearWorkingTarget();
 ```
 
+## Seaching path
+
+Using `containerCost: 1` will make existing containers be same cost `1` as default for roads.
+
+```js
+const path = Pathing.findPath(remoteSourcePos, room.storage.pos, {
+	heuristicWeight: 1,
+	maxOps: 6000,
+	containerCost: 1
+});
+// result: array of RoomPosition-s
+```
+
 
 ## Running moves by room
 
