@@ -898,7 +898,6 @@ module.exports = Pathing;
 
 global.IN_RANGE = 1;
 global.IN_ROOM = 2;
-
 if (!Creep.prototype.originalMoveTo) {
 	Creep.prototype.originalMoveTo = Creep.prototype.moveTo;
 	Creep.prototype.moveTo = function(target, defaultOptions = {}) {
@@ -909,12 +908,6 @@ if (!Creep.prototype.originalMoveTo) {
 			// convenient way of providing role specific movement options (remove previous line to use):
 			// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
 		};
-		if (
-			this.pos.inRangeTo(target, options.range) &&
-			(options.moveOffExit === false || !Utils.isPosExit(this.pos))
-		) {
-			return IN_RANGE;
-		}
 
 		// >> this part is optional. can remove it if you have own implementation of "getCreepWorkingTarget"
 		const targetPos = target.pos || target;
@@ -925,6 +918,12 @@ if (!Creep.prototype.originalMoveTo) {
 		};
 		// <<
 
+		if (
+			this.pos.inRangeTo(target, options.range) &&
+			(options.moveOffExit === false || !Utils.isPosExit(this.pos))
+		) {
+			return IN_RANGE;
+		}
 		return Pathing.moveTo(this, target, options);
 	};
 }
