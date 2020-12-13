@@ -277,9 +277,12 @@ class PathingManager {
 		return moves;
 	}
 
-	hasMove(pos, moves) {
+	hasMove(pos, moves, priority) {
 		return moves.some(
 			move => {
+				if (move.priority < priority) {
+					return false;
+				}
 				const movePos = move.pos || (
 					move.pos = Utils.offsetPos(move.creep.pos, move.direction)
 				);
@@ -324,6 +327,9 @@ class PathingManager {
 		for (let i = 0; i < moves.length; i++) {
 			const move = moves[i];
 			let {creep, direction, priority, pushed, blocked, pos, pathEnd} = move;
+			/* if (creep.name === 'test1' || creep.name === 'test2' || creep.name === 'DroneStatic1-12') {
+				console.log('creep: ', creep.name, 'priority:', priority, 'direction:', direction);
+			} */
 
 			if (blocked || pushed) {
 				const creepPos = creep.pos;
@@ -348,7 +354,7 @@ class PathingManager {
 								targetInfo = workingTargetInfo;
 							}
 						}
-						if (targetInfo || pushed) {
+						if (targetInfo || pushed || this.hasMove(creepPos, moves, priority)) {
 							// determine blocking creep move direction
 							movePos = this.getCreepPushPos(obstacleCreep, priority, moves, targetInfo);
 							moveDirection = Utils.getDirection(obstacleCreep.pos, movePos);
@@ -435,7 +441,7 @@ class PathingManager {
 			this.getAdjacentPositions(creepPos),
 			pos => {
 				let cost = matrix.get(pos.x, pos.y) || terrain.getCost(pos.x, pos.y);
-				if (cost === 255 || this.hasMove(pos, moves) || this.hasObstacleCreep(room, pos.x, pos.y)) {
+				if (cost === 255 || this.hasMove(pos, moves, priority) || this.hasObstacleCreep(room, pos.x, pos.y)) {
 					return 255;
 				}
 				if (pathEnd) {
@@ -457,7 +463,7 @@ class PathingManager {
 			this.getAdjacentPositions(creepPos),
 			pos => {
 				let cost = matrix.get(pos.x, pos.y) || terrain.getCost(pos.x, pos.y);
-				if (cost === 255 || this.hasMove(pos, moves) || this.hasObstacleCreep(room, pos.x, pos.y)) {
+				if (cost === 255 || this.hasMove(pos, moves, priority) || this.hasObstacleCreep(room, pos.x, pos.y)) {
 					return 255;
 				}
 				if (targetInfo) {
