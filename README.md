@@ -14,9 +14,9 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 * Power creeps support
 * Move off exit (enabled by default, can be turned off)
 * Fix path (for heuristicHeight > 1, can be turned off)
-* Room enter event (by providing `onRoomEnter` callback)
+* `onRoomEnter` event
 * Avoid rooms list (specified globally or by options)
-* Prefer pushed creeps be closer to target and stay in range of target if working (by providing `getCreepWorkingTarget` callback)
+* Prefer pushed creeps move closer to target or stay in range of target if working
 * Caching of terrain and cost matrices
 * Possibility to run moves by room
 
@@ -29,8 +29,8 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 * Swap with slow moving creep (> 1 ticks per tile) if it moves the same direction
 * Support for multiple targets
 * Reuse current path when stepped off path (instead of searching path again)
-* Option to check blocked creeps each tick, not losing 1 tick on each bump
-* Fix the issue with deadlock. Rarely happend when creeps issue moves in specific order if they use same priority. Workaround - use different priority for creeps targeted to specific job compare to those that are returning back
+* Option to force check blocked creeps each tick (more precise, but more CPU cost)
+* Fix the issue with deadlock. Rarely happen when creeps issue moves in specific order if they use same priority. Workaround: use different priority for creeps targeted to specific job compare to those that are returning back
 
 
 # Usage
