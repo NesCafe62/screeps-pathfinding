@@ -61,7 +61,7 @@ if (!Creep.prototype.originalMoveTo) {
 			// or this (convenient way of providing role specific move options):
 			// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
 		};
-		if (this.pos.isInRangeTo(target, options.range)) {
+		if (this.pos.inRangeTo(target, options.range)) {
 			return IN_RANGE;
 		}
 		return Pathing.moveTo(this, target, options);
@@ -85,7 +85,7 @@ Creep.prototype.travelTo = function(target, defaultOptions = {}) {
 		// or this (convenient way of providing role specific move options):
 		// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
 	};
-	if (this.pos.isInRangeTo(target, options.range)) {
+	if (this.pos.inRangeTo(target, options.range)) {
 		return IN_RANGE;
 	}
 	return Pathing.moveTo(this, target, options);
