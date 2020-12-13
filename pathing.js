@@ -909,7 +909,10 @@ if (!Creep.prototype.originalMoveTo) {
 			// convenient way of providing role specific movement options (remove previous line to use):
 			// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
 		};
-		if (this.pos.inRangeTo(target, options.range)) {
+		if (
+			this.pos.inRangeTo(target, options.range) &&
+			(options.moveOffExit === false || !Utils.isPosExit(this.pos))
+		) {
 			return IN_RANGE;
 		}
 
