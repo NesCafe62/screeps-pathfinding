@@ -10,7 +10,7 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 
 * Most options that original `creep.moveTo` supports
 * Traffic management (push creeps out of the way or swap with them)
-* Priority option (priority moves will execute first)
+* Priority option (higher priority moves will execute first)
 * Power creeps support
 * Move off exit (enabled by default, can be turned off)
 * Fix path (for heuristicHeight > 1, can be turned off)
