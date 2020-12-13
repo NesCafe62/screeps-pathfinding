@@ -783,7 +783,7 @@ class PathingManager {
 
 
 // ============================
-// PathignManager configuration
+// PathingManager configuration
 // can customize for your own needs
 
 
