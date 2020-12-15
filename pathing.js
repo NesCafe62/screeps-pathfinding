@@ -1,3 +1,5 @@
+// github: https://github.com/NesCafe62/screeps-pathfinding
+
 const Utils = require('pathing.utils');
 
 const MATRIX_LAYER_TERRAIN = 0;
