@@ -169,10 +169,14 @@ const Pathing = new PathingManager({
 ## Pathing.moveTo(target, ?options) / Creep.moveTo(target, ?options)
 
 Return values:
+
 `OK` - successfully scheduled moving to target
+
 `ERR_NO_PATH` - found path is emppty
 
+
 if called via overrided `Creep.moveTo`
+
 `IN_RANGE` - creep is in range of target and not on exit tile, if `moveOffExit` option is not disabled
 
 
@@ -298,9 +302,9 @@ Works as original option.
 
 Default: `(roomName) => isHighwayRoom(roomName) ? 1 : 2.5`
 
-Will be used for find route between rooms if room distance is >= 3. Can be used to prioritize rooms, higher values means more priority. To exclude a room use `Infinity`.
+Will be used for find route between rooms if room distance is >= 3. Higher values increate cost, that means less priority. To exclude a room use `Infinity`.
 
-`avoidRooms` (both global and specified in `moveTo`) will also be applied to find route.
+`avoidRooms` will also be applied to find route (both global and specified in `moveTo`).
 
 
 ### `heuristicWeight`
