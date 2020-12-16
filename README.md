@@ -555,7 +555,7 @@ module.exports.loop = function() {
 	}
 
 	creep2.load();
-	if (creep2.moveTo(creep2.target, {range: 1, priority: 5}) === IN_RANGE) {
+	if (creep2.moveTo(creep2.target, {range: 3, priority: 5}) === IN_RANGE) {
 		//                 ^ ----- can skip .pos, because moveTo accepts object
 		//                         with .pos RoomPosition property
 		const structure = Game.getObjectById(creep2.target.id);
