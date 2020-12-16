@@ -459,6 +459,7 @@ class CreepEntity {
 	constructor(creep) {
 		this.name = creep.name;
 		this.instance = creep;
+		tihs._moveTime = 0;
 
 		Creeps.set(this.name, this);
 	}
@@ -480,6 +481,10 @@ class CreepEntity {
 
 	setTarget(target) {
 		this.target = target;
+	}
+
+	get hasMove() {
+		return this._moveTime === Game.time;
 	}
 
 	moveTo(target, options) {
