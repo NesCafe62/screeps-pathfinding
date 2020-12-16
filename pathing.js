@@ -64,6 +64,8 @@ class PathingManager {
 	constructor(options = {}) {
 		this.onRoomEnter = options.onRoomEnter;
 		this.getCreepWorkingTarget = options.getCreepWorkingTarget;
+		this.getCreepInstance = options.getCreepInstance || ((creep) => creep);
+		this.getCreepEntity = options.getCreepEntity || ((instance) => instance);
 		this.avoidRooms = options.avoidRooms || [];
 		this.matrixCache = new Map();
 		this.roomMoves = new Map();
@@ -94,7 +96,8 @@ class PathingManager {
 		const {range = 1, priority = 0} = defaultOptions;
 		let options = defaultOptions;
 
-		const {pos: creepPos, room, fatigue, memory} = creep;
+		const instance = this.getCreepInstance(creep);
+		const {pos: creepPos, room, fatigue, memory} = instance;
 		const creepRoomName = room.name;
 
 		const data = memory._m;
@@ -194,6 +197,7 @@ class PathingManager {
 			const direction = +path[0];
 			const move = {
 				creep,
+				creepPos,
 				direction,
 				priority,
 				pushed: false,
@@ -206,7 +210,7 @@ class PathingManager {
 				this.cleanup();
 			}
 			this.insertMove(creepRoomName, move);
-			creep._hasMove = true;
+			creep._moveTime = Game.time;
 		}
 
 		if (options.visualizePathStyle) {
@@ -251,7 +255,7 @@ class PathingManager {
 	// moves
 	insertMove(roomName, move) {
 		const moves = this.getMoves(roomName);
-		if (move.creep._hasMove) {
+		if (move.creep._moveTime === Game.time) {
 			this.removeMove(moves, move.creep.name);
 		}
 		const priority = move.priority;
@@ -286,7 +290,7 @@ class PathingManager {
 					return false;
 				}
 				const movePos = move.pos || (
-					move.pos = Utils.offsetPos(move.creep.pos, move.direction)
+					move.pos = Utils.offsetPos(move.creepPos, move.direction)
 				);
 				return Utils.isCoordsEqual(pos, movePos);
 			}
@@ -328,38 +332,38 @@ class PathingManager {
 	moveCreeps(moves) {
 		for (let i = 0; i < moves.length; i++) {
 			const move = moves[i];
-			let {creep, direction, priority, pushed, blocked, pos, pathEnd} = move;
-			/* if (creep.name === 'test1' || creep.name === 'test2' || creep.name === 'DroneStatic1-12') {
-				console.log('creep: ', creep.name, 'priority:', priority, 'direction:', direction);
-			} */
+			let {creep, creepPos, direction, priority, pushed, blocked, pos, pathEnd} = move;
+			const instance = this.getCreepInstance(creep);
 
 			if (blocked || pushed) {
-				const creepPos = creep.pos;
-				const obstacleCreep = this.getObstacleCreep(pos || (move.pos = Utils.offsetPos(creepPos, direction)));
-				if (obstacleCreep) {
+				const obstacleInstance = this.getObstacleCreep(pos || (move.pos = Utils.offsetPos(creepPos, direction)));
+				if (obstacleInstance) {
+					const obstacleCreep = obstacleInstance.my
+						? this.getCreepEntity(obstacleInstance)
+						: undefined;
 					// blocked by creep
-					if (!obstacleCreep.my) {
+					if (!obstacleCreep) {
 						// not own creep
 						if (!pathEnd && !pushed) {
 							pathEnd = this.getPathEnd(creepPos, creep.memory._m.path);
 						}
-						move.pos = this.getCreepMovePos(creep, priority, moves, pathEnd);
+						move.pos = this.getCreepMovePos(instance, priority, moves, pathEnd);
 						direction = move.direction = Utils.getDirection(creepPos, move.pos);
-					} else if (!obstacleCreep.fatigue && !obstacleCreep._hasMove) {
+					} else if (!obstacleInstance.fatigue && obstacleCreep._moveTime !== Game.time) {
 						// assuming moves will always run in from higher priority to lower, can skip priority check.
 						// full version of this condition was:
-					// } else if (!obstacleCreep.fatigue && (!obstacleCreep._hasMove || priority > blockingCreep.move.priority)) {
+					// } else if (!obstacleCreep.fatigue && (obstacleCreep._moveTime !== Game.time || priority > blockingCreep.move.priority)) {
 						let moveDirection, movePos, targetInfo;
 						if (this.getCreepWorkingTarget) {
 							const workingTargetInfo = this.getCreepWorkingTarget(obstacleCreep);
-							if (workingTargetInfo && workingTargetInfo.pos.roomName === obstacleCreep.room.name) {
+							if (workingTargetInfo && workingTargetInfo.pos.roomName === obstacleInstance.room.name) {
 								targetInfo = workingTargetInfo;
 							}
 						}
 						if (targetInfo || pushed || this.hasMove(creepPos, moves, priority)) {
 							// determine blocking creep move direction
-							movePos = this.getCreepPushPos(obstacleCreep, priority, moves, targetInfo);
-							moveDirection = Utils.getDirection(obstacleCreep.pos, movePos);
+							movePos = this.getCreepPushPos(obstacleInstance, priority, moves, targetInfo);
+							moveDirection = Utils.getDirection(obstacleInstance.pos, movePos);
 						} else {
 							// swap positions
 							movePos = creepPos;
@@ -367,6 +371,7 @@ class PathingManager {
 						}
 						const obstacleCreepMove = {
 							creep: obstacleCreep,
+							creepPos: obstacleInstance.pos,
 							direction: moveDirection,
 							priority,
 							pushed: true,
@@ -381,7 +386,7 @@ class PathingManager {
 					this.clearMatrixCacheRoom(creepPos.roomName);
 				}
 			}
-			creep.move(direction);
+			instance.move(direction);
 		}
 	}
 
@@ -489,16 +494,17 @@ class PathingManager {
 			...room.find(FIND_MY_POWER_CREEPS)
 		];
 
-		for (const creep of creeps) {
+		for (const instance of creeps) {
+			const creep = this.getCreepEntity(instance);
 			const targetInfo = this.getCreepWorkingTarget(creep);
 			if (!targetInfo) {
 				continue;
 			}
 			if (
-				creep.pos.inRangeTo(targetInfo.pos, targetInfo.range) &&
+				instance.pos.inRangeTo(targetInfo.pos, targetInfo.range) &&
 				(targetInfo.priority === undefined || targetInfo.priority >= priority)
 			) {
-				const {x, y} = creep.pos;
+				const {x, y} = instance.pos;
 				matrix.setFast(x, y, 60);
 			}
 		}
@@ -892,7 +898,17 @@ const Pathing = new PathingManager({
 			range: target.range,
 			priority: target.priority,
 		};
-	}
+	},
+
+	// get creep GameObject from creep wrapper object
+	/* getCreepInstance(creep) {
+		return creep;
+	}, */
+
+	// get creep wrapper object from creep GameObject
+	/* getCreepEntity(instance) {
+		return instance;
+	}, */
 
 });
 module.exports = Pathing;
