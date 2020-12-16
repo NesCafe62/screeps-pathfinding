@@ -408,10 +408,6 @@ Example:
 // ============================
 // PathingManager configuration
 
-const DEFAULT_PATH_STYLE = {stroke: '#fff', lineStyle: 'dashed', opacity: 0.5};
-
-const DEFAULT_RANGE = 1;
-
 const Pathing = new PathingManager({
 
 	// list of rooms to avoid globally:
@@ -446,15 +442,15 @@ const Pathing = new PathingManager({
 });
 module.exports = Pathing;
 
-global.IN_RANGE = 1;
-global.IN_ROOM = 2;
-
 
 // creeps.js
 const Pathing = require('pathing');
 const PathingUtils = require('pathing.utils');
 
 const PATH_STYLE = {stroke: '#fff', lineStyle: 'dashed', opacity: 0.5};
+
+global.IN_RANGE = 1;
+global.IN_ROOM = 2;
 
 global.Creeps = new Map();
 
