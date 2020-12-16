@@ -377,3 +377,191 @@ Note: configuration section contains default implementation of `getCreepWorkingT
 
 Shuold return an object with target info `{pos, range, ?priority}`. Will be used for push creeps or avoiding obstacles movement to prioritize positions that are in rnage of the target if creep moves towards it or works near it. If priority is not set or undefined will always be pushed if other creep will try to move there.
 In case of no target to prefer return `undefined` or `false`.
+
+
+### `getCreepInstance(creep)`
+
+Default: `(creep) => creep`
+
+If you specify this function, you can use creep wrapper object instead of creep GameObject in `Pathing.moveTo`.
+
+
+### `getCreepEntity(instance)`
+
+Default: `(instance) => instance`
+
+Need to provide this function if you specified `getCreepInstance(creep)`, to get wrapper object from creeps that were obtained by `room.find`.
+
+
+## Wrapper objects
+
+It is possible to use wrapper objects with `Pathing.moveTo`. It will require it to have properties:
+* `name` - should contain creep's name
+* `memory` - should refer to creep's memory
+
+It is also good if you define `_moveTime` property initialized with `0` or `undefined` (but it is not mandatory). The reason is to prevent hidden class change if you will store wrapper object between tick.
+
+Example:
+```js
+// pathing.js
+...
+// ============================
+// PathingManager configuration
+
+const DEFAULT_PATH_STYLE = {stroke: '#fff', lineStyle: 'dashed', opacity: 0.5};
+
+const DEFAULT_RANGE = 1;
+
+const Pathing = new PathingManager({
+
+	// list of rooms to avoid globally:
+	/* avoidRooms: [], */
+
+	// this event will be called every time creep enters new room:
+	/* onRoomEnter(creep, roomName) {
+		console.log(`Creep ${creep.name} entered room ${roomName}`);
+	}, */
+
+	// manager will use this function to make creeps stay in range of their target
+	getCreepWorkingTarget(creep) {
+		if (creep.target) {
+			return {
+				pos: creep.target.pos,
+				range: creep.targetRange,
+				priority: creep.targetPriority,
+			};
+		}
+	},
+
+	// get creep GameObject from creep wrapper object
+	getCreepInstance(creep) {
+		return creep.instance;
+	},
+
+	// get creep wrapper object from creep GameObject
+	getCreepEntity(instance) {
+		return Creeps.get(instance.name);
+	},
+
+});
+module.exports = Pathing;
+
+global.IN_RANGE = 1;
+global.IN_ROOM = 2;
+
+
+// creeps.js
+const Pathing = require('pathing');
+const PathingUtils = require('pathing.utils');
+
+const PATH_STYLE = {stroke: '#fff', lineStyle: 'dashed', opacity: 0.5};
+
+global.Creeps = new Map();
+
+class CreepEntity {
+
+	constructor(creep) {
+		this.name = creep.name;
+		this.instance = creep;
+
+		Creeps.set(this.name, this);
+	}
+	
+	died() {
+		// cleanup memory
+		Memory.creeps[this.name] = undefined;
+		Creeps.delete(this.name);
+	}
+
+	load() {
+		this.instance = Game.creeps[this.name] || this.died();
+	}
+
+	// can override it via class inheritance
+	getMoveOptions(options) {
+		return options;
+	}
+
+	setTarget(target) {
+		this.target = target;
+	}
+
+	moveTo(target, options) {
+		const options = {
+			priority: 0,
+			range: 1,
+			visualizePathStyle: PATH_STYLE,
+			...getMoveOptions(defaultOptions)
+		};
+		this.targetRange = options.range;
+		this.targetPriority = options.priority;
+		if (
+			this.instance.pos.inRangeTo(target, options.range) &&
+			(options.moveOffExit === false || !PathingUtils.isPosExit(this.pos))
+		) {
+			return IN_RANGE;
+		}
+		return Pathing.moveTo(this, target, options);
+	}
+
+	moveToRoom(target, options = {}) {
+		const options = {
+			priority: 0,
+			range: 23,
+			visualizePathStyle: PATH_STYLE,
+			...getMoveOptions(defaultOptions)
+		};
+		const targetPos = target.pos || target;
+		this.targetRange = options.range;
+		this.targetPriority = options.priority;
+		if (
+			this.instance.room.name === targetPos.roomName &&
+			!PathingUtils.isPosExit(this.instance.pos)
+		) {
+			return IN_ROOM;
+		}
+		return Pathing.moveTo(this, target, options);
+	}
+
+}
+module.exports = CreepEntity;
+
+
+// main.js
+const CreepEntity = require('creeps');
+const Pathing = require('pathing');
+
+const creep1 = new CreepEntity(Game.creeps['creep1']);
+const creep2 = new CreepEntity(Game.creeps['creep2']);
+
+const controller = Game.rooms['E30N30'].controller;
+
+creep1.setTarget({
+	pos: controller.pos,
+	id: controller.id
+});
+creep2.setTarget({
+ 	// structure to repair
+	pos: new RoomPosition(15, 23, 'E30N30'),
+	id: '5cd9f723e350f83bc9e02d47'
+});
+
+module.exports.loop = function() {
+
+	creep1.load();
+	if (creep1.moveTo(creep1.target, {range: 3}) === IN_RANGE) {
+		creep1.upgradeController(creep1.instance.room.controller);
+	}
+
+	creep2.load();
+	if (creep2.moveTo(creep2.target, {range: 1, priority: 5}) === IN_RANGE) {
+		//                 ^ ----- can skip .pos, because moveTo accepts object with .pos RoomPosition property
+		const structure = Game.getObjectById(creep2.target.id);
+		if (structure) {
+			creep1.repair(structure);
+		}
+	}
+
+	Pathing.runMoves();
+}
+```
