@@ -551,7 +551,7 @@ module.exports.loop = function() {
 
 	creep1.load();
 	if (creep1.moveTo(creep1.target, {range: 3}) === IN_RANGE) {
-		creep1.upgradeController(creep1.instance.room.controller);
+		creep1.instance.upgradeController(creep1.instance.room.controller);
 	}
 
 	creep2.load();
@@ -560,7 +560,7 @@ module.exports.loop = function() {
 		//                         with .pos RoomPosition property
 		const structure = Game.getObjectById(creep2.target.id);
 		if (structure) {
-			creep1.repair(structure);
+			creep1.instance.repair(structure);
 		}
 	}
 
