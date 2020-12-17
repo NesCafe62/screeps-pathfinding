@@ -16,6 +16,7 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 * Move off exit behavior (enabled by default, can be turned off)
 * Fix path (for heuristicHeight > 1, can be turned off)
 * `onRoomEnter` event
+* Correct account of swamp roads for `ignoreRoads` and `offRoads` options
 * Avoid rooms list (specified globally or by options)
 * Prefer pushed creeps move closer to target or stay in range of target if working
 * Caching of terrain and cost matrices
