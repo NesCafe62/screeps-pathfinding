@@ -95,16 +95,28 @@ creep1.clearWorkingTarget();
 
 ## Seaching path
 
-Using `containerCost: 1` will make existing containers be same cost `1` as default for roads.
-
-FindRoute is false for better accuracy.
+findRoute is `false` for better accuracy.
 
 ```js
+const PathingUtils = require('pathing.utils');
+
+let containerPos;
+const lookContainer = PathingUtils.lookInRange(source.pos, source.room, LOOK_STRUCTURES, 1)
+	.find(item => (item.structure.structureType === STRUCTURE_CONTAINER));
+if (lookContainer) {
+	containerPos = lookContainer.structure.pos;
+}
+
 const path = Pathing.findPath(remoteSourcePos, room.storage.pos, {
 	heuristicWeight: 1,
 	maxOps: 6000,
-	containerCost: 1,
-	findRoute: false
+	findRoute: false,
+	containerCost: 5, // path around other containers
+	costCallback(roomName, matrix) {
+		if (containerPos && roomName === containerPos.roomName) {
+			matrix.set(containerPos.x, containerPos.y, 1);
+		}
+	}
 });
 // result: array of RoomPosition-s
 ```
