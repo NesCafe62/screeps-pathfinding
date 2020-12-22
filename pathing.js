@@ -214,7 +214,7 @@ class PathingManager {
 		}
 
 		if (options.visualizePathStyle) {
-			if (fatigue > 0) {
+			if (fatigue) {
 				path = path.substr(1);
 			}
 			this.visualizePath(creepPos, path, targetPos, range, options.visualizePathStyle);
