@@ -210,7 +210,7 @@ class PathingManager {
 				blocked,
 				pos: undefined,
 				pathEnd,
-				moveOffRoadMatrix: undefined,
+				offRoad: undefined,
 			};
 			if (this.lastMoveTime !== Game.time) {
 				this.lastMoveTime = Game.time;
@@ -245,7 +245,7 @@ class PathingManager {
 		const creepPos = instance.pos;
 		const creepRoomName = instance.room.name;
 
-		const {priority = -1000, moveOffContainer = true} = options;
+		const {priority = -1000, moveOffContainer = true, moveOffExit = true} = options;
 
 		const matrixOptions = {
 			ignoreContainers: !moveOffContainer,
@@ -277,7 +277,7 @@ class PathingManager {
 			blocked: false,
 			pos: undefined,
 			pathEnd: undefined,
-			moveOffRoadMatrix: matrix,
+			offRoad: [matrix, moveOffExit],
 		};
 		this.insertMove(creepRoomName, move);
 		creep._moveTime = Game.time;
@@ -419,12 +419,12 @@ class PathingManager {
 	moveCreeps(moves) {
 		for (let i = 0; i < moves.length; i++) {
 			const move = moves[i];
-			let {creep, creepPos, direction, priority, pushed, blocked, pos, pathEnd, moveOffRoadMatrix} = move;
+			let {creep, creepPos, direction, priority, pushed, blocked, pos, pathEnd, offRoad} = move;
 			const instance = this.getCreepInstance(creep);
 
-			if (moveOffRoadMatrix) {
+			if (offRoad) {
 				const targetInfo = this.getCreepTargetInfo(creep, instance.room.name);
-				pos = this.getCreepOffRoadMovePos(instance, moveOffRoadMatrix, priority, moves, targetInfo);
+				pos = this.getCreepOffRoadMovePos(instance, offRoad, priority, moves, targetInfo);
 				if (!pos) {
 					// no position to move, skip
 					// keep this move as incomplete to be ignored by other moveOffRoad creeps
@@ -434,7 +434,7 @@ class PathingManager {
 				direction = move.direction = Utils.getDirection(creepPos, pos);
 				creep._offRoadTime = 0; // mark this move as completed
 			}
-			if (blocked || pushed || moveOffRoadMatrix) {
+			if (blocked || pushed || offRoad) {
 				const obstacleInstance = this.getObstacleCreep(pos || (move.pos = Utils.offsetPos(creepPos, direction)));
 				if (obstacleInstance) {
 					const obstacleCreep = obstacleInstance.my
@@ -479,7 +479,7 @@ class PathingManager {
 							blocked: false,
 							pos: movePos || obstacleCreepPos,
 							pathEnd: undefined,
-							moveOffRoadMatrix: undefined,
+							offRoad: undefined,
 						};
 						moves.splice(i + 1, 0, obstacleCreepMove);
 						obstacleCreep._moveTime = Game.time;
@@ -606,7 +606,8 @@ class PathingManager {
 		}
 	}
 
-	getCreepOffRoadMovePos(creep, matrix, priority, moves, targetInfo) {
+	getCreepOffRoadMovePos(creep, offRoad, priority, moves, targetInfo) {
+		const [matrix, moveOffExit] = offRoad;
 		const {room, pos: creepPos} = creep;
 
 		const terrain = TerrainCache.get(room.name);
@@ -623,7 +624,7 @@ class PathingManager {
 				if (targetInfo && Utils.getRange(pos, targetInfo.pos) > targetInfo.range) {
 					continue;
 				}
-				if (Utils.isPosExit(pos)) {
+				if (moveOffExit && Utils.isPosExit(pos)) {
 					cost += 10;
 				}
 			}
