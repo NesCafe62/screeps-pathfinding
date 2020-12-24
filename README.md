@@ -14,7 +14,7 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 * Correct pathing to a range of target that is in another room (with default `moveTo` it not completes the path if pathing distance to target satisfies range)
 * Power creeps support
 * Move off exit behavior (enabled by default, can be turned off)
-* `moveOffRoad` option and separate function
+* Move off road behavior (disabled by default, can be turned on) and separate function
 * Fix path (for heuristicHeight > 1, can be turned off)
 * `onRoomEnter` event
 * Correct account of swamp roads for `ignoreRoads` and `offRoads` options
