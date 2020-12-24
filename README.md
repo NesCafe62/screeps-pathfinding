@@ -14,6 +14,7 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 * Correct pathing to a range of target that is in another room (with default `moveTo` it not completes the path if pathing distance to target satisfies range)
 * Power creeps support
 * Move off exit behavior (enabled by default, can be turned off)
+* `moveOffRoad` option and separate function
 * Fix path (for heuristicHeight > 1, can be turned off)
 * `onRoomEnter` event
 * Correct account of swamp roads for `ignoreRoads` and `offRoads` options
@@ -74,10 +75,27 @@ Note: Ensure you use higher priority for miners like `priority: 5`, especially i
 
 
 ## Move to room
+
 ```js
 const creep1 = Game.creeps['creep1'];
 if (creep1.moveToRoom('E30N30') === IN_ROOM) {
 	// search target logic, move and work
+}
+```
+
+
+## Move off road
+
+```js
+const creep1 = Game.creeps['creep1'];
+creep1.moveOffRoad();
+
+const creep2 = Game.creeps['creep2'];
+creep2.moveOffRoad(target2, {range: 3});
+
+const creep3 = Game.creeps['creep3'];
+if (creep3.moveTo(target3, {range: 3, moveOffRoad: true}) === IN_RANGE) {
+	// do work
 }
 ```
 
