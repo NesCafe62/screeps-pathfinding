@@ -180,7 +180,9 @@ const Pathing = new PathingManager({
 ```
 
 
-## Pathing.moveTo(target, ?options) / Creep.moveTo(target, ?options)
+## Pathing.moveTo(creep, target, ?options) / Creep.moveTo(target, ?options)
+
+Will try to move creep towards the target using specified options.
 
 Return values:
 
@@ -231,6 +233,24 @@ Priority for creep movement. Movement for creep with higher priority is preferre
 Default: `true`
 
 Forces path finish position to be on non-exit tile. Only works if specified `range` is greater than `0`.
+Can be turned off.
+
+
+### `moveOffRoad`
+
+Default: `false`
+
+If set to true, tries to move creep off road if it is finished moving and in range of target. Will only move off road if stay in range of target.
+Target is determined by `getCreepWorkingTarget`. If no target just tries to move off road.
+
+Turned off by default. To enable globaly for all creeps uncomment the line `moveOffRoad: true` in method `Creep.prototype.moveTo` in configuration section.
+
+
+### `moveOffContainer`
+
+Default: `true`
+
+Will be used when `moveOffRoad` behavior is enabled. Will treat containers as roads.
 Can be turned off.
 
 
@@ -366,7 +386,47 @@ Default: `false`
 Should work as original option (but have not tested).
 
 
-## Constructor options
+
+## Pathing.moveOffRoad(creep, ?options) / Creep.moveOffRoad(target, ?options)
+
+Will try to move creep off road.
+
+Returns `true` if creep is not fatigued and is on road. In this case moveOffRoad behavior will be scheduled.
+
+
+### `target`
+
+Default: `undefined`
+
+Target to stay in range with. If no target will just move off road in any direction.
+Only available if called via `Creep.moveOffRoad`
+
+
+## MoveOffRoadOptions
+
+### `priority`
+
+Default: `-1000`
+
+Creeps with higher priority will be moved first.
+
+
+### `moveOffExit`
+
+Default: `true`
+
+If set to true will prefer non-exit tiles.
+
+
+### `moveOffContainer`
+
+Default: `true`
+
+Will treat containers as roads.
+
+
+
+## PathingManager.constructor options
 
 ### `avoidRooms`
 
