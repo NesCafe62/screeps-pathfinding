@@ -282,6 +282,7 @@ class PathingManager {
 		this.insertMove(creepRoomName, move);
 		creep._moveTime = Game.time;
 		creep._offRoadTime = Game.time;
+		return true;
 	}
 
 	deserializeMove(data) {
@@ -1094,7 +1095,7 @@ if (!Creep.prototype.originalMoveTo) {
 			(options.moveOffExit === false || !Utils.isPosExit(this.pos))
 		) {
 			if (options.moveOffRoad) {
-				Pathing.moveOffRoad(this, options);
+				Pathing.moveOffRoad(this, {...options, priority: -1000});
 			}
 			return IN_RANGE;
 		}
