@@ -87,23 +87,25 @@ class PathingManager {
 		if (!targetPos) {
 			return ERR_INVALID_ARGS;
 		}
-		/* if (!creep.instance.body.some(
+
+		const instance = this.getCreepInstance(creep);
+		/* if (!instance.body.some(
 			part => part.type === MOVE && part.hits > 0
 		)) {
 			return ERR_NO_BODYPART;
 		} */
 
-		const {range = 1, priority = 0} = defaultOptions;
-		let options = defaultOptions;
-
-		const instance = this.getCreepInstance(creep);
-		const {pos: creepPos, room, fatigue, memory} = instance;
+		const memory = creep.memory;
+		const {pos: creepPos, room, fatigue} = instance;
 		const creepRoomName = room.name;
 
 		const data = memory._m;
 		let [prevTargetPos, lastPos, path] = data
 			? this.deserializeMove(data)
 			: [undefined, undefined, ''];
+
+		const {range = 1, priority = 0} = defaultOptions;
+		let options = defaultOptions;
 
 		if (!fatigue) {
 			let newPath = false;
@@ -147,19 +149,23 @@ class PathingManager {
 					creepRoomName === targetPos.roomName &&
 					creepPos.getRangeTo(targetPos) === range + 1
 				) {
+					// for the edge case when target has mora than one sections of tiles in range not connected to each other
+					// prevents creep pushing each other when more positions near target exist if they path around
+					// this condition fires when creep was pushed out of range by other creep
+					// (thought it can fire on normal case when just target is exactly at range + 1 distance)
 					const prevCostCallback = options.costCallback;
 					let costCallback;
 					if (prevCostCallback) {
 						costCallback = (roomName, matrix) => {
 							prevCostCallback(roomName, matrix);
 							if (roomName === creepRoomName) {
-								this.addWorkingCreepsToMatrix(matrix, targetPos, room, priority);
+								this.addWorkingCreepsToMatrix(matrix, room, priority);
 							}
 						};
 					} else {
 						costCallback = (roomName, matrix) => {
 							if (roomName === creepRoomName) {
-								this.addWorkingCreepsToMatrix(matrix, targetPos, room, priority);
+								this.addWorkingCreepsToMatrix(matrix, room, priority);
 							}
 						};
 					}
@@ -204,6 +210,7 @@ class PathingManager {
 				blocked,
 				pos: undefined,
 				pathEnd,
+				moveOffRoadMatrix: undefined,
 			};
 			if (this.lastMoveTime !== Game.time) {
 				this.lastMoveTime = Game.time;
@@ -211,6 +218,7 @@ class PathingManager {
 			}
 			this.insertMove(creepRoomName, move);
 			creep._moveTime = Game.time;
+			creep._offRoadTime = 0;
 		}
 
 		if (options.visualizePathStyle) {
@@ -221,6 +229,59 @@ class PathingManager {
 		}
 
 		return OK;
+	}
+
+	moveOffRoad(creep, options = {}) {
+		const instance = this.getCreepInstance(creep);
+		if (instance.fatigue) {
+			return false;
+		}
+		/* if (!instance.body.some(
+			part => part.type === MOVE && part.hits > 0
+		)) {
+			return false;
+		} */
+
+		const creepPos = instance.pos;
+		const creepRoomName = instance.room.name;
+
+		const {priority = -1000, moveOffContainer = true} = options;
+
+		const matrixOptions = {
+			ignoreContainers: !moveOffContainer,
+			containerCost: 1,
+			plainCost: 2
+		};
+		const matrixKey = (
+			MATRIX_LAYER_STRUCTURES |
+			MATRIX_LAYER_TUNNELS |
+			MATRIX_LAYER_ROADS |
+			(moveOffContainer ? MATRIX_LAYER_PREFER_CONTAINERS : 0)
+		);
+		const matrix = this.getCostMatrix(creepRoomName, matrixOptions, matrixKey);
+		if (matrix.get(creepPos.x, creepPos.y) !== 1) { // not on road
+			return false;
+		}
+
+		if (this.lastMoveTime !== Game.time) {
+			this.lastMoveTime = Game.time;
+			this.cleanup();
+		}
+
+		const move = {
+			creep,
+			creepPos,
+			direction: 0,
+			priority,
+			pushed: false,
+			blocked: false,
+			pos: undefined,
+			pathEnd: undefined,
+			moveOffRoadMatrix: matrix,
+		};
+		this.insertMove(creepRoomName, move);
+		creep._moveTime = Game.time;
+		creep._offRoadTime = Game.time;
 	}
 
 	deserializeMove(data) {
@@ -297,6 +358,21 @@ class PathingManager {
 		);
 	}
 
+	// same as hasMove but ignore incomplete offRoad moves
+	hasMoveWithOffRoad(pos, moves, priority) {
+		return moves.some(
+			move => {
+				if (move.priority < priority || move.creep._offRoadTime === Game.time) {
+					return false;
+				}
+				const movePos = move.pos || (
+					move.pos = Utils.offsetPos(move.creepPos, move.direction)
+				);
+				return Utils.isCoordsEqual(pos, movePos);
+			}
+		);
+	}
+
 
 	// run moves
 	runMoves() {
@@ -329,13 +405,35 @@ class PathingManager {
 		}
 	}
 
+	getCreepTargetInfo(creep, roomName) {
+		if (!this.getCreepWorkingTarget) {
+			return;
+		}
+		const targetInfo = this.getCreepWorkingTarget(creep);
+		if (targetInfo && targetInfo.pos.roomName === roomName) {
+			return targetInfo;
+		}
+	}
+
 	moveCreeps(moves) {
 		for (let i = 0; i < moves.length; i++) {
 			const move = moves[i];
-			let {creep, creepPos, direction, priority, pushed, blocked, pos, pathEnd} = move;
+			let {creep, creepPos, direction, priority, pushed, blocked, pos, pathEnd, moveOffRoadMatrix} = move;
 			const instance = this.getCreepInstance(creep);
 
-			if (blocked || pushed) {
+			if (moveOffRoadMatrix) {
+				const targetInfo = this.getCreepTargetInfo(creep, instance.room.name);
+				pos = this.getCreepOffRoadMovePos(instance, moveOffRoadMatrix, priority, moves, targetInfo);
+				if (!pos) {
+					// no position to move, skip
+					// keep this move as incomplete to be ignored by other moveOffRoad creeps
+					continue;
+				}
+				move.pos = pos;
+				direction = move.direction = Utils.getDirection(creepPos, pos);
+				creep._offRoadTime = 0; // mark this move as completed
+			}
+			if (blocked || pushed || moveOffRoadMatrix) {
 				const obstacleInstance = this.getObstacleCreep(pos || (move.pos = Utils.offsetPos(creepPos, direction)));
 				if (obstacleInstance) {
 					const obstacleCreep = obstacleInstance.my
@@ -347,23 +445,25 @@ class PathingManager {
 						if (!pathEnd && !pushed) {
 							pathEnd = this.getPathEnd(creepPos, creep.memory._m.path);
 						}
-						move.pos = this.getCreepMovePos(instance, priority, moves, pathEnd);
-						direction = move.direction = Utils.getDirection(creepPos, move.pos);
-					} else if (!obstacleInstance.fatigue && obstacleCreep._moveTime !== Game.time) {
-						// assuming moves will always run in from higher priority to lower, can skip priority check.
-						// full version of this condition was:
-					// } else if (!obstacleCreep.fatigue && (obstacleCreep._moveTime !== Game.time || priority > blockingCreep.move.priority)) {
-						let moveDirection, movePos, targetInfo;
-						if (this.getCreepWorkingTarget) {
-							const workingTargetInfo = this.getCreepWorkingTarget(obstacleCreep);
-							if (workingTargetInfo && workingTargetInfo.pos.roomName === obstacleInstance.room.name) {
-								targetInfo = workingTargetInfo;
-							}
+						const movePos = this.getCreepMovePos(instance, priority, moves, pathEnd);
+						move.pos = movePos || creepPos;
+						direction = move.direction = movePos ? Utils.getDirection(creepPos, movePos) : 0;
+					} else if (
+						!obstacleInstance.fatigue &&
+						(obstacleCreep._moveTime !== Game.time || obstacleCreep._offRoadTime === Game.time)
+					) {
+						// assuming moves will always run from higher priority to lower, can skip priority check.
+						if (obstacleCreep._offRoadTime === Game.time) {
+							this.removeMove(moves, obstacleInstance.name);
+							obstacleCreep._offRoadTime = 0;
 						}
+						const obstacleCreepPos = obstacleInstance.pos;
+						let moveDirection, movePos;
+						const targetInfo = this.getCreepTargetInfo(obstacleCreep, obstacleInstance.room.name);
 						if (targetInfo || pushed || this.hasMove(creepPos, moves, priority)) {
 							// determine blocking creep move direction
 							movePos = this.getCreepPushPos(obstacleInstance, priority, moves, targetInfo);
-							moveDirection = Utils.getDirection(obstacleInstance.pos, movePos);
+							moveDirection = movePos ? Utils.getDirection(obstacleCreepPos, movePos) : 0;
 						} else {
 							// swap positions
 							movePos = creepPos;
@@ -371,22 +471,26 @@ class PathingManager {
 						}
 						const obstacleCreepMove = {
 							creep: obstacleCreep,
-							creepPos: obstacleInstance.pos,
+							creepPos: obstacleCreepPos,
 							direction: moveDirection,
 							priority,
 							pushed: true,
 							blocked: false,
-							pos: movePos,
+							pos: movePos || obstacleCreepPos,
 							pathEnd: undefined,
+							moveOffRoadMatrix: undefined,
 						};
 						moves.splice(i + 1, 0, obstacleCreepMove);
+						obstacleCreep._moveTime = Game.time;
 					}
 				} else if (blocked) {
 					// blocked by structure
 					this.clearMatrixCacheRoom(creepPos.roomName);
 				}
 			}
-			instance.move(direction);
+			if (direction > 0) {
+				instance.move(direction);
+			}
 		}
 	}
 
@@ -444,35 +548,43 @@ class PathingManager {
 
 		const terrain = TerrainCache.get(room.name);
 		const matrix = this.getCostMatrix(room.name);
-		const movePos = Utils.min(
-			this.getAdjacentPositions(creepPos),
-			pos => {
-				let cost = matrix.get(pos.x, pos.y) || terrain.getCost(pos.x, pos.y);
-				if (cost === 255 || this.hasMove(pos, moves, priority) || this.hasObstacleCreep(room, pos.x, pos.y)) {
-					return 255;
-				}
-				if (pathEnd) {
-					cost += Utils.getRange(pos, pathEnd) * 10;
-				}
-				return cost;
+
+		let movePos, minCost;
+		for (const pos of this.getAdjacentPositions(creepPos)) {
+			let cost = matrix.get(pos.x, pos.y) || terrain.getCost(pos.x, pos.y);
+			if (cost === 255 || this.hasMove(pos, moves, priority)) {
+				continue;
 			}
-		);
-		return new RoomPosition(movePos.x, movePos.y, room.name);
+			if (this.hasObstacleCreep(room, pos.x, pos.y)) {
+				cost = 1000;
+			} else if (pathEnd) {
+				cost += Utils.getRange(pos, pathEnd) * 10;
+			}
+			if (!movePos || cost < minCost) {
+				minCost = cost;
+				movePos = pos;
+			}
+		}
+		if (movePos) {
+			return new RoomPosition(movePos.x, movePos.y, room.name);
+		}
 	}
 
 	getCreepPushPos(creep, priority, moves, targetInfo) {
 		const {room, pos: creepPos} = creep;
 
 		const terrain = TerrainCache.get(room.name);
-		let matrix = this.getCostMatrix(room.name);
+		const matrix = this.getCostMatrix(room.name);
 
-		const movePos = Utils.min(
-			this.getAdjacentPositions(creepPos),
-			pos => {
-				let cost = matrix.get(pos.x, pos.y) || terrain.getCost(pos.x, pos.y);
-				if (cost === 255 || this.hasMove(pos, moves, priority) || this.hasObstacleCreep(room, pos.x, pos.y)) {
-					return 255;
-				}
+		let movePos, minCost;
+		for (const pos of this.getAdjacentPositions(creepPos)) {
+			let cost = matrix.get(pos.x, pos.y) || terrain.getCost(pos.x, pos.y);
+			if (cost === 255 || this.hasMove(pos, moves, priority)) {
+				continue;
+			}
+			if (this.hasObstacleCreep(room, pos.x, pos.y)) {
+				cost = 1000;
+			} else {
 				if (targetInfo) {
 					const range = Utils.getRange(pos, targetInfo.pos);
 					if (range > targetInfo.range) {
@@ -482,13 +594,46 @@ class PathingManager {
 				if (Utils.isPosExit(pos)) {
 					cost += 10;
 				}
-				return cost;
 			}
-		);
-		return new RoomPosition(movePos.x, movePos.y, room.name);
+			if (!movePos || cost < minCost) {
+				minCost = cost;
+				movePos = pos;
+			}
+		}
+		if (movePos) {
+			return new RoomPosition(movePos.x, movePos.y, room.name);
+		}
 	}
 
-	addWorkingCreepsToMatrix(matrix, targetPos, room, priority) {
+	getCreepOffRoadMovePos(creep, matrix, priority, moves, targetInfo) {
+		const {room, pos: creepPos} = creep;
+
+		const terrain = TerrainCache.get(room.name);
+
+		let movePos, minCost;
+		for (const pos of this.getAdjacentPositions(creepPos)) {
+			let cost = matrix.get(pos.x, pos.y) || terrain.getCost(pos.x, pos.y);
+			if (cost === 255 || cost === 1 || this.hasMoveWithOffRoad(pos, moves, priority)) {
+				continue;
+			}
+			if (this.hasObstacleCreep(room, pos.x, pos.y)) {
+				cost = 1000;
+			} else {
+				if (targetInfo && Utils.getRange(pos, targetInfo.pos) > targetInfo.range) {
+					continue;
+				}
+				if (Utils.isPosExit(pos)) {
+					cost += 10;
+				}
+			}
+			if (!movePos || cost < minCost) {
+				minCost = cost;
+				movePos = pos;
+			}
+		}
+	}
+
+	addWorkingCreepsToMatrix(matrix, room, priority) {
 		const creeps = [
 			...room.find(FIND_MY_CREEPS),
 			...room.find(FIND_MY_POWER_CREEPS)
@@ -747,28 +892,30 @@ class PathingManager {
 
 
 	// cost matrix
-	getCostMatrix(roomName, options = {}) {
-		let key = MATRIX_LAYER_TERRAIN;
-		if (!options.ignoreStructures) {
-			key += MATRIX_LAYER_STRUCTURES;
-		}
-		if (!options.ignoreTunnels) {
-			key += MATRIX_LAYER_TUNNELS;
-		}
-		if (!options.ignoreContainers) {
-			if (options.containerCost < options.plainCost) {
-				key += MATRIX_LAYER_PREFER_CONTAINERS;
-			} else {
-				key += MATRIX_LAYER_CONTAINERS;
+	getCostMatrix(roomName, options = {}, matrixKey = undefined) {
+		let key = matrixKey || MATRIX_LAYER_TERRAIN;
+		if (!matrixKey) {
+			if (!options.ignoreStructures) {
+				key += MATRIX_LAYER_STRUCTURES;
 			}
-		}
-		if (options.offRoads) {
-			key += MATRIX_LAYER_OFF_ROADS;
-		} else {
-			if (!options.ignoreRoads) {
-				key += MATRIX_LAYER_ROADS;
-			} else if (options.swampCost > options.plainCost) {
-				key += MATRIX_LAYER_SWAMP_ROADS;
+			if (!options.ignoreTunnels) {
+				key += MATRIX_LAYER_TUNNELS;
+			}
+			if (!options.ignoreContainers) {
+				if (options.containerCost < options.plainCost) {
+					key += MATRIX_LAYER_PREFER_CONTAINERS;
+				} else {
+					key += MATRIX_LAYER_CONTAINERS;
+				}
+			}
+			if (options.offRoads) {
+				key += MATRIX_LAYER_OFF_ROADS;
+			} else {
+				if (!options.ignoreRoads) {
+					key += MATRIX_LAYER_ROADS;
+				} else if (options.swampCost > options.plainCost) {
+					key += MATRIX_LAYER_SWAMP_ROADS;
+				}
 			}
 		}
 		if (key === MATRIX_LAYER_TERRAIN) {
@@ -776,8 +923,7 @@ class PathingManager {
 		}
 		let [cache, time] = this.matrixCache.get(roomName) || [];
 		if (!cache || Game.time >= time + MATRIX_CACHE_TIME) {
-			cache = [undefined, undefined, undefined, undefined, undefined];
-			this.matrixCache.set(roomName, [cache, Game.time]);
+			this.matrixCache.set(roomName, [cache = {}, Game.time]);
 		}
 		if (!cache[key]) {
 			const room = Game.rooms[roomName];
@@ -916,12 +1062,19 @@ module.exports = Pathing;
 
 global.IN_RANGE = 1;
 global.IN_ROOM = 2;
+
 if (!Creep.prototype.originalMoveTo) {
 	Creep.prototype.originalMoveTo = Creep.prototype.moveTo;
 	Creep.prototype.moveTo = function(target, defaultOptions = {}) {
 		const options = {
+
 			range: DEFAULT_RANGE,
+
 			visualizePathStyle: DEFAULT_PATH_STYLE,
+
+			// uncomment this line to enable moveOffRoad behavior:
+			// moveOffRoad: true,
+
 			...defaultOptions,
 			// convenient way of providing role specific movement options (remove previous line to use):
 			// ...CreepRoles[this.memory.role].getMoveOptions(defaultOptions)
@@ -940,6 +1093,9 @@ if (!Creep.prototype.originalMoveTo) {
 			this.pos.inRangeTo(target, options.range) &&
 			(options.moveOffExit === false || !Utils.isPosExit(this.pos))
 		) {
+			if (options.moveOffRoad) {
+				Pathing.moveOffRoad(this, options);
+			}
 			return IN_RANGE;
 		}
 		return Pathing.moveTo(this, target, options);
@@ -949,6 +1105,23 @@ if (!PowerCreep.prototype.originalMoveTo) {
 	PowerCreep.prototype.originalMoveTo = PowerCreep.prototype.moveTo;
 	PowerCreep.prototype.moveTo = Creep.prototype.moveTo;
 }
+
+
+Creep.prototype.moveOffRoad = function(target = undefined, defaultOptions = {}) {
+	const options = {
+		range: DEFAULT_RANGE,
+		...defaultOptions,
+	};
+	if (target) {
+		const targetPos = target.pos || target;
+		this.memory._t = {
+			pos: [targetPos.x, targetPos.y, targetPos.roomName],
+			range: options.range,
+			priority: options.priority
+		};
+	}
+	return Pathing.moveOffRoad(this, options);
+};
 
 
 Creep.prototype.moveToRoom = function(roomName, options = {}) {

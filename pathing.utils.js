@@ -24,18 +24,6 @@ PathFinder.CostMatrix.prototype.setFast = function(x, y, value) {
 
 const Utils = {
 
-	min(arr, func) {
-		let res, min;
-		for (const element of arr) {
-			const value = func(element);
-			if (!res || value < min) {
-				min = value;
-				res = element;
-			}
-		}
-		return res;
-	},
-
 	logError(error) {
 		console.log(`<span style="color: ${CL_ERROR}">${error.stack.replace(/\n/g, '<br>')}</span>`);
 	},
