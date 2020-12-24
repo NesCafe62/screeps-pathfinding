@@ -219,7 +219,7 @@ if called via overrided `Creep.moveTo`
 RoomPosition or object with `pos` RoomPosition property
 
 
-## Options
+## moveTo options
 
 Not includes this options from original `creep.moveTo`:
 * `reusePath`
@@ -420,7 +420,7 @@ Target to stay in range with. If no target will just move off road in any direct
 Only available if called via `Creep.moveOffRoad`
 
 
-## MoveOffRoadOptions
+## moveOffRoad options
 
 ### `priority`
 
