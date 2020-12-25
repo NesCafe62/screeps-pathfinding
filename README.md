@@ -13,6 +13,7 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 * Priority option (higher priority moves will execute first)
 * Correct pathing to a range of target that is in another room (with default `moveTo` it not completes the path if pathing distance to target satisfies range)
 * Power creeps support
+* Find route for efficient long range movement
 * Move off exit behavior (enabled by default, can be turned off)
 * Move off road behavior (disabled by default, can be turned on) and separate function
 * Fix path (for heuristicHeight > 1, can be turned off)
@@ -22,10 +23,6 @@ Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 * Prefer pushed creeps move closer to target or stay in range of target if working
 * Caching of terrain and cost matrices
 * Possibility to run moves by room
-
-update 13.12.2020:
-
-* Find route for efficient long range movement
 
 
 # Implemneted fixes
