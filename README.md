@@ -262,6 +262,8 @@ Can be turned off.
 
 Default: `false`
 
+Only available if called via `Creep.moveTo`.
+
 If set to true, tries to move creep off road if it is finished moving and in range of target. Will only move off road if stay in range of target.
 Target is determined by `getCreepWorkingTarget`. If no target just tries to move off road.
 
@@ -420,8 +422,10 @@ Returns `true` if creep is not fatigued and is on road. In this case moveOffRoad
 
 Default: `undefined`
 
+Only available if called via `Creep.moveOffRoad`.
+
 Target to stay in range with. If no target will just move off road in any direction.
-Only available if called via `Creep.moveOffRoad`
+
 
 
 ## moveOffRoad options
