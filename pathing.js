@@ -242,9 +242,10 @@ class PathingManager {
 			return false;
 		} */
 
+		creep._offRoadTime = Game.time;
+
 		const creepPos = instance.pos;
 		const creepRoomName = instance.room.name;
-
 		const {priority = -1000, moveOffContainer = true, moveOffExit = true} = options;
 
 		const matrixOptions = {
@@ -281,7 +282,6 @@ class PathingManager {
 		};
 		this.insertMove(creepRoomName, move);
 		creep._moveTime = Game.time;
-		creep._offRoadTime = Game.time;
 		return true;
 	}
 
@@ -454,16 +454,18 @@ class PathingManager {
 						(obstacleCreep._moveTime !== Game.time || obstacleCreep._offRoadTime === Game.time)
 					) {
 						// assuming moves will always run from higher priority to lower, can skip priority check.
+						let preferOffRoad = false;
 						if (obstacleCreep._offRoadTime === Game.time) {
 							this.removeMove(moves, obstacleInstance.name);
 							obstacleCreep._offRoadTime = 0;
+							preferOffRoad = true;
 						}
 						const obstacleCreepPos = obstacleInstance.pos;
-						let moveDirection, movePos;
 						const targetInfo = this.getCreepTargetInfo(obstacleCreep, obstacleInstance.room.name);
+						let moveDirection, movePos;
 						if (targetInfo || pushed || this.hasMove(creepPos, moves, priority)) {
 							// determine blocking creep move direction
-							movePos = this.getCreepPushPos(obstacleInstance, priority, moves, targetInfo);
+							movePos = this.getCreepPushPos(obstacleInstance, preferOffRoad, priority, moves, targetInfo);
 							moveDirection = movePos ? Utils.getDirection(obstacleCreepPos, movePos) : 0;
 						} else {
 							// swap positions
@@ -571,7 +573,7 @@ class PathingManager {
 		}
 	}
 
-	getCreepPushPos(creep, priority, moves, targetInfo) {
+	getCreepPushPos(creep, preferOffRoad, priority, moves, targetInfo) {
 		const {room, pos: creepPos} = creep;
 
 		const terrain = TerrainCache.get(room.name);
@@ -586,6 +588,9 @@ class PathingManager {
 			if (this.hasObstacleCreep(room, pos.x, pos.y)) {
 				cost = 1000;
 			} else {
+				if (preferOffRoad && cost <= 2) {
+					cost = (cost === 1) ? 2 : 1;
+				}
 				if (targetInfo) {
 					const range = Utils.getRange(pos, targetInfo.pos);
 					if (range > targetInfo.range) {
@@ -632,6 +637,9 @@ class PathingManager {
 				minCost = cost;
 				movePos = pos;
 			}
+		}
+		if (movePos) {
+			return new RoomPosition(movePos.x, movePos.y, room.name);
 		}
 	}
 
