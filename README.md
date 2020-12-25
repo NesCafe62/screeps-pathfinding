@@ -1,3 +1,5 @@
+![npm](https://img.shields.io/npm/v/screeps-pathfinding)
+
 A pathfinding solution for screeps. Inspired by Traveler.
 
 
@@ -5,6 +7,11 @@ A pathfinding solution for screeps. Inspired by Traveler.
 
 Copy `pathing.js` and `pathing.utils.js` into your screeps brunch directory.
 
+Or using npm:
+
+```sh
+npm i screeps-pathfinding
+```
 
 # Implemented features
 
