@@ -174,14 +174,14 @@ module.exports.loop = function() {
 
 There is a configuration section at the bottom of `pathing.js` file.
 
-Feel free to change the values of `DEFAUL_RANGE`, `DEFAUL_PATH_STYLE` and `getCreepWorkingTarget` implementation.
+Feel free to change the values of `DEFAULT_RANGE`, `DEFAULT_PATH_STYLE` and `getCreepWorkingTarget` implementation.
 
 ```js
 // default visualize path style:
-const DEFAUL_PATH_STYLE = {stroke: '#fff', lineStyle: 'dashed', opacity: 0.5};
+const DEFAULT_PATH_STYLE = {stroke: '#fff', lineStyle: 'dashed', opacity: 0.5};
 
 // default range:
-const DEFAUL_RANGE = 1;
+const DEFAULT_RANGE = 1;
 
 const Pathing = new PathingManager({
 
