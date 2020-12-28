@@ -104,7 +104,7 @@ class PathingManager {
 			? this.deserializeMove(data)
 			: [undefined, undefined, ''];
 
-		const {range = 1, priority = 0} = defaultOptions;
+		const {range = 1, priority = 0, allowIncomplete = true} = defaultOptions;
 		let options = defaultOptions;
 
 		if (!fatigue) {
@@ -141,7 +141,7 @@ class PathingManager {
 				}
 			}
 
-			let pathEnd;
+			let pathEnd, pathIncomplete;
 			if (newPath) {
 				if (
 					!blocked &&
@@ -192,12 +192,14 @@ class PathingManager {
 					options = {...options, costCallback};
 				}
 
-				[path, pathEnd] = this.serializePath(creepPos, this.findPath(creepPos, targetPos, options));
+				const res = this.findPath(creepPos, targetPos, options);
+				pathIncomplete = res.incomplete;
+				[path, pathEnd] = this.serializePath(creepPos, res.path);
 			}
 
 			memory._m = this.serializeMove(targetPos, creepPos, path);
 
-			if (path.length === 0) {
+			if (path.length === 0 || (pathIncomplete && (!allowIncomplete || path.length <= 1))) {
 				return ERR_NO_PATH;
 			}
 			const direction = +path[0];
@@ -740,8 +742,9 @@ class PathingManager {
 				searchTargets = targets;
 			}
 		}
-		const {path} = PathFinder.search(startPos, searchTargets, options);
-		if (addTargetPos) {
+		const res = PathFinder.search(startPos, searchTargets, options);
+		const path = res.path;
+		if (addTargetPos && !res.incomplete) {
 			path.push(targetPos);
 		}
 		if (
@@ -759,7 +762,7 @@ class PathingManager {
 				this.fixPath(path, startRoomMatrix, roomName);
 			}
 		}
-		return path;
+		return res;
 	}
 
 	findRoute(startPos, targetPos, options = {}) {
