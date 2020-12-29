@@ -24,6 +24,20 @@ PathFinder.CostMatrix.prototype.setFast = function(x, y, value) {
 
 const Utils = {
 
+	hasActiveBodyparts(creep, partType) {
+		const body = creep.body;
+		for (let i = body.length - 1; i >= 0; i--) {
+			const part = body[i];
+			if (part.hits <= 0) {
+				break;
+			}
+			if (part.type === partType) {
+				return true;
+			}
+		}
+		return false;
+	},
+
 	logError(error) {
 		console.log(`<span style="color: ${CL_ERROR}">${error.stack.replace(/\n/g, '<br>')}</span>`);
 	},

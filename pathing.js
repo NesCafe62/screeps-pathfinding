@@ -418,6 +418,16 @@ class PathingManager {
 		}
 	}
 
+	creepCanMove(creep) {
+		if (creep.hits === creep.hitsMax) {
+			return true;
+		}
+		if (creep._canMove === undefined) {
+			creep._canMove = Utils.hasActiveBodyparts(creep, MOVE);
+		}
+		return creep._canMove;
+	}
+
 	moveCreeps(moves) {
 		for (let i = 0; i < moves.length; i++) {
 			const move = moves[i];
@@ -439,7 +449,7 @@ class PathingManager {
 			if (blocked || pushed || offRoad) {
 				const obstacleInstance = this.getObstacleCreep(pos || (move.pos = Utils.offsetPos(creepPos, direction)));
 				if (obstacleInstance) {
-					const obstacleCreep = obstacleInstance.my
+					const obstacleCreep = (obstacleInstance.my && this.creepCanMove(obstacleInstance))
 						? this.getCreepEntity(obstacleInstance)
 						: undefined;
 					// blocked by creep
@@ -527,7 +537,9 @@ class PathingManager {
 	// called to filter possible move positions for moving blocked creep or pushing obstacle creep
 	hasObstacleCreep(room, x, y) {
 		return (
-			room.lookForAt(LOOK_CREEPS, x, y).find(creep => !creep.my || creep.fatigue > 0) ||
+			room.lookForAt(LOOK_CREEPS, x, y).find(
+				creep => !creep.my || creep.fatigue > 0 || !this.creepCanMove(creep)
+			) ||
 			room.lookForAt(LOOK_POWER_CREEPS, x, y).find(creep => !creep.my)
 		);
 	}
@@ -652,6 +664,11 @@ class PathingManager {
 		];
 
 		for (const instance of creeps) {
+			const {x, y} = instance.pos;
+			if (!this.creepCanMove(instance)) {
+				matrix.setFast(x, y, 255);
+				continue;
+			}
 			const creep = this.getCreepEntity(instance);
 			const targetInfo = this.getCreepWorkingTarget(creep);
 			if (!targetInfo) {
@@ -661,9 +678,8 @@ class PathingManager {
 				instance.pos.inRangeTo(targetInfo.pos, targetInfo.range) &&
 				(targetInfo.priority === undefined || targetInfo.priority >= priority)
 			) {
-				const {x, y} = instance.pos;
-				matrix.setFast(x, y, 60);
 			}
+			matrix.setFast(x, y, 60);
 		}
 	}
 
