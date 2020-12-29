@@ -115,6 +115,7 @@ const creep1 = Game.creeps['creep1'];
 creep1.clearWorkingTarget();
 ```
 
+
 ## Seaching path
 
 findRoute is `false` for better accuracy.
@@ -129,7 +130,7 @@ if (lookContainer) {
 	containerPos = lookContainer.structure.pos;
 }
 
-const path = Pathing.findPath(remoteSourcePos, room.storage.pos, {
+const res = Pathing.findPath(remoteSourcePos, room.storage.pos, {
 	heuristicWeight: 1,
 	maxOps: 6000,
 	findRoute: false,
@@ -140,8 +141,16 @@ const path = Pathing.findPath(remoteSourcePos, room.storage.pos, {
 		}
 	}
 });
-// result: array of RoomPosition-s
 ```
+
+### Pathing.findPath result
+
+Object with following fields:
+
+`path` - array of `RoomPosition` objects
+`opts` - number of operations performed to find the path
+`cost` - cost of the path
+`incomplete` - `true` if path is incomplete
 
 
 ## Running moves by room
@@ -165,14 +174,14 @@ module.exports.loop = function() {
 
 There is a configuration section at the bottom of `pathing.js` file.
 
-Feel free to change the values of `DEFAUL_RANGE`, `DEFAUL_PATH_STYLE` and `getCreepWorkingTarget` implementation.
+Feel free to change the values of `DEFAULT_RANGE`, `DEFAULT_PATH_STYLE` and `getCreepWorkingTarget` implementation.
 
 ```js
 // default visualize path style:
-const DEFAUL_PATH_STYLE = {stroke: '#fff', lineStyle: 'dashed', opacity: 0.5};
+const DEFAULT_PATH_STYLE = {stroke: '#fff', lineStyle: 'dashed', opacity: 0.5};
 
 // default range:
-const DEFAUL_RANGE = 1;
+const DEFAULT_RANGE = 1;
 
 const Pathing = new PathingManager({
 
@@ -210,7 +219,7 @@ Return values:
 
 `OK` - successfully scheduled moving to target
 
-`ERR_NO_PATH` - found path is emppty
+`ERR_NO_PATH` - found path is empty or incomplete (if `allowIncomplete` is set to `false`)
 
 
 if called via overrided `Creep.moveTo`
@@ -380,6 +389,13 @@ Default: `true`
 If set, fixes the path after finding (those annoying one tile step out of the road on turns). Only does it for one current room, so relatively cheap.
 Takes no effect if `heuristicWeight` is `1` or `ignoreRoads` is set or `offRoads` is set or resulting path length is `3` or shorter.
 Can be turned off.
+
+
+### `allowIncomplete`
+
+Default: `true`
+
+If set to `false` and unable to find complete path: function will return `ERR_NO_PATH` and creep move intent will not be scheduled.
 
 
 ### `maxOps`
