@@ -730,7 +730,7 @@ class PathingManager {
 			...defaultOptions,
 			roomCallback: roomName => {
 				if (routeRooms) {
-					if (!routeRooms.includes(roomName)) {
+					if (roomName !== startRoomName && !routeRooms.includes(roomName)) {
 						return false;
 					}
 				} else if (avoidRooms.length > 0 && avoidRooms.includes(roomName)) {
