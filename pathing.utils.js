@@ -46,6 +46,10 @@ const Utils = {
 		return Math.max(Math.abs(pos1.x - pos2.x), Math.abs(pos1.y - pos2.y));
 	},
 
+	posToCoords(pos) {
+		return {x: pos.x, y: pos.y};
+	},
+
 	offsetPosCoords(pos, direction) {
 		const x = pos.x + (DIRECTION_TO_OFFSET[direction * 2] || 0);
 		const y = pos.y + (DIRECTION_TO_OFFSET[direction * 2 + 1] || 0);
