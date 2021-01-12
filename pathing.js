@@ -89,6 +89,12 @@ class PathingManager {
 		}
 
 		const instance = this.getCreepInstance(creep);
+
+		if (instance.spawning) {
+			logError(new Error(`Pathfinder: can't move creep that is spawning '${creep.name}'`));
+			return ERR_INVALID_ARGS;
+		}
+
 		/* if (!instance.body.some(
 			part => part.type === MOVE && part.hits > 0
 		)) {
@@ -235,6 +241,12 @@ class PathingManager {
 
 	moveOffRoad(creep, options = {}) {
 		const instance = this.getCreepInstance(creep);
+		
+		if (instance.spawning) {
+			logError(new Error(`Pathfinder: can't move creep that is spawning '${creep.name}'`));
+			return ERR_INVALID_ARGS;
+		}
+
 		if (instance.fatigue) {
 			return false;
 		}
