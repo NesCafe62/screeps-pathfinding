@@ -91,7 +91,7 @@ class PathingManager {
 		const instance = this.getCreepInstance(creep);
 
 		if (instance.spawning) {
-			logError(new Error(`Pathfinder: can't move creep that is spawning '${creep.name}'`));
+			Utils.logError(new Error(`Pathfinder: can't move creep that is spawning '${creep.name}'`));
 			return ERR_INVALID_ARGS;
 		}
 
@@ -243,7 +243,7 @@ class PathingManager {
 		const instance = this.getCreepInstance(creep);
 		
 		if (instance.spawning) {
-			logError(new Error(`Pathfinder: can't move creep that is spawning '${creep.name}'`));
+			Utils.logError(new Error(`Pathfinder: can't move creep that is spawning '${creep.name}'`));
 			return ERR_INVALID_ARGS;
 		}
 
