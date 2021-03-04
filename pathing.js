@@ -391,6 +391,11 @@ class PathingManager {
 
 	// run moves
 	runMoves() {
+		if (this.lastMoveTime !== Game.time) {
+			this.lastMoveTime = Game.time;
+			this.cleanup();
+			return;
+		}
 		try {
 			for (let moves of this.roomMoves.values()) {
 				this.moveCreeps(moves);
@@ -402,6 +407,11 @@ class PathingManager {
 	}
 
 	runMovesRoom(roomName) {
+		if (this.lastMoveTime !== Game.time) {
+			this.lastMoveTime = Game.time;
+			this.cleanup();
+			return;
+		}
 		const moves = this.roomMoves.get(roomName);
 		if (!moves) {
 			return;
