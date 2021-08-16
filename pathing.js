@@ -675,10 +675,10 @@ class PathingManager {
 	}
 
 	addWorkingCreepsToMatrix(matrix, room, priority) {
-		const creeps = [
-			...room.find(FIND_MY_CREEPS),
-			...room.find(FIND_MY_POWER_CREEPS)
-		];
+		const creeps = [].concat(
+			room.find(FIND_MY_CREEPS),
+			room.find(FIND_MY_POWER_CREEPS)
+		);
 
 		for (const instance of creeps) {
 			const {x, y} = instance.pos;
@@ -695,8 +695,8 @@ class PathingManager {
 				instance.pos.inRangeTo(targetInfo.pos, targetInfo.range) &&
 				(targetInfo.priority === undefined || targetInfo.priority >= priority)
 			) {
+				matrix.setFast(x, y, 60);
 			}
-			matrix.setFast(x, y, 60);
 		}
 	}
 
