@@ -155,10 +155,10 @@ class PathingManager {
 					creepRoomName === targetPos.roomName &&
 					creepPos.getRangeTo(targetPos) === range + 1
 				) {
-					// for the edge case when target has mora than one sections of tiles in range not connected to each other
-					// prevents creep pushing each other when more positions near target exist if they path around
+					// for the edge case when target has more than one sections of tiles in range but not connected to each other
+					// prevents creeps repeatedly pushing each other when more positions near target exist if they can path around
 					// this condition fires when creep was pushed out of range by other creep
-					// (thought it can fire on normal case when just target is exactly at range + 1 distance)
+					// (though it can fire on normal case when just target is exactly at range + 1 distance)
 					const prevCostCallback = options.costCallback;
 					let costCallback;
 					if (prevCostCallback) {
