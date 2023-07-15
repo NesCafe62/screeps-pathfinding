@@ -95,7 +95,7 @@ const creep1 = Game.creeps['creep1'];
 creep1.moveOffRoad();
 
 const creep2 = Game.creeps['creep2'];
-creep2.moveOffRoad(target2, {range: 3});
+creep2.moveOffRoad(target2, {range: 3}); // will try to move off road staying in range 3 of target
 
 const creep3 = Game.creeps['creep3'];
 if (creep3.moveTo(target3, {range: 3, moveOffRoad: true}) === IN_RANGE) {
@@ -354,8 +354,8 @@ Works as original option.
 
 Default: `5`
 
-Pathing cost for container. Takes no effect `ignoreContainers` is set. Default value helps to avoid potential creeps that are working there.
-If set to 1 useful to prioritize container when generating path to a source.
+Pathing cost for container. Takes no effect when `ignoreContainers` is set. Default value helps to avoid potential creeps that are working there.
+Setting it to 1 useful to prioritize container when generating path to a source.
 
 
 ### `costCallback(roomName, matrix)`
