@@ -902,7 +902,7 @@ class PathingManager {
 							const cost2 = matrix.get(x, y) || terrain.getCost(x, y);
 							if (cost2 === 1) {
 								path[i - 1] = new RoomPosition(x, y, roomName);
-								cost = 1;
+								costs[i - 1] = 1;
 								break;
 							}
 						}
