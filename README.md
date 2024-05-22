@@ -116,6 +116,31 @@ creep1.clearWorkingTarget();
 ```
 
 
+## Getting creep path and direction
+
+### getDirection()
+
+Returns a direction which creep is planned to move. `1` to `8`, in-game constants `TOP`, `TOP_RIGHT`, etc.
+
+Will be `undefined` if creep was not issued to move in current tick.
+
+Also will be undefined after `moveOffRoad` call, because direction is decided in the last phase of run moves stage.
+
+## getPath()
+
+Returns serialized path string, that is also stored in `creep.memory._m[5]`.
+
+Will be `undefined` if creep was not issued to move in current tick (or after `moveOffRoad` call).
+
+```js
+const pos = Game.flags['flag1'].pos;
+const creep1 = Game.creeps['creep1'];
+creep1.moveTo(pos, {range: 1});
+console.log(creep1.getDirection());
+console.log(creep1.getPath());
+```
+
+
 ## Seaching path
 
 findRoute is `false` for better accuracy.
