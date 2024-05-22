@@ -1200,7 +1200,7 @@ PowerCreep.prototype.getDirection = Creep.prototype.getDirection;
 
 
 Creep.prototype.getPath = function() {
-	return Pathing.getCreepPath();
+	return Pathing.getCreepPath(this);
 }
 PowerCreep.prototype.getPath = Creep.prototype.getPath;
 
