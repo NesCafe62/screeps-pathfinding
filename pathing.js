@@ -225,6 +225,7 @@ class PathingManager {
 				this.cleanup();
 			}
 			this.insertMove(creepRoomName, move);
+			creep._moveDirection = direction;
 			creep._moveTime = Game.time;
 			creep._offRoadTime = 0;
 		}
@@ -297,6 +298,19 @@ class PathingManager {
 		this.insertMove(creepRoomName, move);
 		creep._moveTime = Game.time;
 		return true;
+	}
+
+	getMoveDirection(creep) {
+		return (creep._moveTime === Game.time)
+			? creep._moveDirection
+			: undefined;
+	}
+
+	getCreepPath(creep) {
+		const memory = creep.memory;
+		return memory._m
+			? memory._m[5]
+			: undefined;
 	}
 
 	deserializeMove(data) {
@@ -1177,6 +1191,18 @@ Creep.prototype.moveToRoom = function(roomName, options = {}) {
 	return this.moveTo(new RoomPosition(25, 25, roomName), {...options, range: 23});
 };
 PowerCreep.prototype.moveToRoom = Creep.prototype.moveToRoom;
+
+
+Creep.prototype.getDirection = function() {
+	return Pathing.getMoveDirection(this);
+}
+PowerCreep.prototype.getDirection = Creep.prototype.getDirection;
+
+
+Creep.prototype.getPath = function() {
+	return Pathing.getCreepPath();
+}
+PowerCreep.prototype.getPath = Creep.prototype.getPath;
 
 
 Creep.prototype.clearWorkingTarget = function() {
