@@ -23,7 +23,7 @@ npm i screeps-pathfinding
 * Find route for efficient long range movement
 * Move off exit behavior (enabled by default, can be turned off)
 * Move off road behavior (disabled by default, can be turned on) and separate function
-* Fix path (for heuristicHeight > 1, can be turned off)
+* Fix path (for heuristicWeight > 1, can be turned off)
 * `onRoomEnter` event
 * Correct account of swamp roads for `ignoreRoads` and `offRoads` options
 * Avoid rooms list (specified globally or by options)
@@ -32,7 +32,7 @@ npm i screeps-pathfinding
 * Possibility to run moves by room
 
 
-# Implemneted fixes
+# Implemented fixes
 * When `moveTo` as called multiple times for creep during the tick, it will overwrite previous move (no extra intent cost)
 
 
