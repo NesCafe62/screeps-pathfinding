@@ -162,10 +162,16 @@ class PathingManager {
 					const prevCostCallback = options.costCallback;
 					let costCallback;
 					if (prevCostCallback) {
-						costCallback = (roomName, matrix) => {
-							prevCostCallback(roomName, matrix);
+						costCallback = (roomName, _matrix) => {
+							let matrix = prevCostCallback(roomName, _matrix);
 							if (roomName === creepRoomName) {
-								this.addWorkingCreepsToMatrix(matrix, room, priority);
+								if (matrix) {
+									matrix = matrix.clone();
+								}
+								this.addWorkingCreepsToMatrix(matrix || _matrix, room, priority);
+							}
+							if (matrix) {
+								return matrix;
 							}
 						};
 					} else {
@@ -182,10 +188,16 @@ class PathingManager {
 					const prevCostCallback = options.costCallback;
 					let costCallback;
 					if (prevCostCallback) {
-						costCallback = (roomName, matrix) => {
-							prevCostCallback(roomName, matrix);
+						costCallback = (roomName, _matrix) => {
+							let matrix = prevCostCallback(roomName, _matrix);
 							if (roomName === creepRoomName) {
-								this.addHostilesToMatrix(matrix, creepPos, room, 2);
+								if (matrix) {
+									matrix = matrix.clone();
+								}
+								this.addHostilesToMatrix(matrix || _matrix, creepPos, room, 2);
+							}
+							if (matrix) {
+								return matrix;
 							}
 						};
 					} else {
@@ -345,7 +357,7 @@ class PathingManager {
 	// moves
 	insertMove(roomName, move) {
 		const moves = this.getMoves(roomName);
-		if (move.creep._moveTime === Game.time) {
+		if (move.creep && move.creep._moveTime === Game.time) {
 			this.removeMove(moves, move.creep.name);
 		}
 		const priority = move.priority;
@@ -371,6 +383,31 @@ class PathingManager {
 			this.roomMoves.set(roomName, moves = []);
 		}
 		return moves;
+	}
+
+	reservePos(pos, priority) {
+		if (!pos.roomName) {
+			Utils.logError(new Error('Pathfinder: reservePos argument is not a RoomPosition'));
+			return ERR_INVALID_ARGS;
+		}
+		if (this.lastMoveTime !== Game.time) {
+			this.lastMoveTime = Game.time;
+			this.cleanup();
+		}
+
+		const move = {
+			creep: undefined,
+			creepPos: pos,
+			direction: 0,
+			priority,
+			pushed: false,
+			blocked: false,
+			pos: undefined,
+			pathEnd: undefined,
+			offRoad: undefined,
+		};
+		this.insertMove(pos.roomName, move);
+		return OK;
 	}
 
 	hasMove(pos, moves, priority) {
@@ -411,7 +448,7 @@ class PathingManager {
 			return;
 		}
 		try {
-			for (let moves of this.roomMoves.values()) {
+			for (const moves of this.roomMoves.values()) {
 				this.moveCreeps(moves);
 			}
 		} catch (error) {
@@ -468,7 +505,11 @@ class PathingManager {
 		for (let i = 0; i < moves.length; i++) {
 			const move = moves[i];
 			let {creep, creepPos, direction, priority, pushed, blocked, pathEnd, offRoad} = move;
-			const instance = this.getCreepInstance(creep);
+			let instance;
+			if (creep) {
+				instance = this.getCreepInstance(creep);
+			}
+
 			if (offRoad) {
 				const targetInfo = this.getCreepTargetInfo(creep, instance.room.name);
 				const offRoadPos = this.getCreepOffRoadMovePos(instance, offRoad, priority, moves, targetInfo);
@@ -770,7 +811,7 @@ class PathingManager {
 				let matrix = this.getCostMatrix(roomName, options);
 				if (costCallback) {
 					matrix = matrix ? matrix.clone() : new PathFinder.CostMatrix();
-					costCallback(roomName, matrix);
+					matrix = costCallback(roomName, matrix) || matrix;
 				}
 				if (roomName === startRoomName) {
 					startRoomMatrix = matrix;
