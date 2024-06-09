@@ -370,8 +370,23 @@ class PathingManager {
 
 	removeMove(moves, creepName) {
 		for (let i = 0; i < moves.length; i++) {
-			if (moves[i].creep.name === creepName) {
+			const move = moves[i];
+			if (move.creep && move.creep.name === creepName) {
 				moves.splice(i, 1);
+				break;
+			}
+		}
+	}
+
+	increaseMovePriority(moves, fromIndex, creepName, priority) {
+		for (let i = fromIndex + 2; i < moves.length; i++) {
+			const move = moves[i];
+			if (move.creep && move.creep.name === creepName) {
+				if (move.priority <= priority) {
+					move.priority = priority;
+					moves.splice(i, 1);
+					moves.splice(fromIndex + 1, 0, move);
+				}
 				break;
 			}
 		}
@@ -537,43 +552,44 @@ class PathingManager {
 						const movePos = this.getCreepMovePos(instance, priority, moves, pathEnd);
 						move.pos = movePos || Utils.posToCoords(creepPos);
 						direction = move.direction = movePos ? Utils.getDirection(creepPos, movePos) : 0;
-					} else if (
-						!obstacleInstance.fatigue &&
-						(obstacleCreep._moveTime !== Game.time || obstacleCreep._offRoadTime === Game.time)
-					) {
-						// assuming moves will always run from higher priority to lower, can skip priority check.
-						let preferOffRoad = false;
-						if (obstacleCreep._offRoadTime === Game.time) {
-							this.removeMove(moves, obstacleInstance.name);
-							obstacleCreep._offRoadTime = 0;
-							preferOffRoad = true;
+					} else if (!obstacleInstance.fatigue) {
+						if (obstacleCreep._moveTime !== Game.time || obstacleCreep._offRoadTime === Game.time) {
+							// assuming moves will always run from higher priority to lower, can skip priority check.
+							let preferOffRoad = false;
+							if (obstacleCreep._offRoadTime === Game.time) {
+								this.removeMove(moves, obstacleInstance.name);
+								obstacleCreep._offRoadTime = 0;
+								preferOffRoad = true;
+							}
+							const obstacleCreepPos = obstacleInstance.pos;
+							const targetInfo = this.getCreepTargetInfo(obstacleCreep, obstacleInstance.room.name);
+							let moveDirection, movePos;
+							if (targetInfo || pushed || this.hasMove(creepPos, moves, priority)) {
+								// determine blocking creep move direction
+								const pushPos = this.getCreepPushPos(obstacleInstance, preferOffRoad, priority, moves, targetInfo);
+								movePos = pushPos || move.pos;
+								moveDirection = pushPos ? Utils.getDirection(obstacleCreepPos, pushPos) : 0;
+							} else {
+								// swap positions
+								movePos = Utils.posToCoords(creepPos);
+								moveDirection = (direction + 3) % 8 + 1;
+							}
+							const obstacleCreepMove = {
+								creep: obstacleCreep,
+								creepPos: obstacleCreepPos,
+								direction: moveDirection,
+								priority,
+								pushed: true,
+								blocked: false,
+								pos: movePos,
+								pathEnd: undefined,
+								offRoad: undefined,
+							};
+							moves.splice(i + 1, 0, obstacleCreepMove);
+							obstacleCreep._moveTime = Game.time;
+						} else if (obstacleCreep._moveTime === Game.time) {
+							this.increaseMovePriority(moves, i, obstacleInstance.name, priority);
 						}
-						const obstacleCreepPos = obstacleInstance.pos;
-						const targetInfo = this.getCreepTargetInfo(obstacleCreep, obstacleInstance.room.name);
-						let moveDirection, movePos;
-						if (targetInfo || pushed || this.hasMove(creepPos, moves, priority)) {
-							// determine blocking creep move direction
-							const pushPos = this.getCreepPushPos(obstacleInstance, preferOffRoad, priority, moves, targetInfo);
-							movePos = pushPos || move.pos;
-							moveDirection = pushPos ? Utils.getDirection(obstacleCreepPos, pushPos) : 0;
-						} else {
-							// swap positions
-							movePos = Utils.posToCoords(creepPos);
-							moveDirection = (direction + 3) % 8 + 1;
-						}
-						const obstacleCreepMove = {
-							creep: obstacleCreep,
-							creepPos: obstacleCreepPos,
-							direction: moveDirection,
-							priority,
-							pushed: true,
-							blocked: false,
-							pos: movePos,
-							pathEnd: undefined,
-							offRoad: undefined,
-						};
-						moves.splice(i + 1, 0, obstacleCreepMove);
-						obstacleCreep._moveTime = Game.time;
 					}
 				} else if (blocked) {
 					// blocked by structure
