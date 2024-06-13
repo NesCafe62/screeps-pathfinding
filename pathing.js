@@ -511,7 +511,7 @@ class PathingManager {
 			return true;
 		}
 		if (creep._canMove === undefined) {
-			creep._canMove = Utils.hasActiveBodyparts(creep, MOVE);
+			creep._canMove = !creep.body || Utils.hasActiveBodyparts(creep, MOVE);
 		}
 		return creep._canMove;
 	}
