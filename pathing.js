@@ -848,7 +848,13 @@ class PathingManager {
 		}
 		const res = PathFinder.search(startPos, searchTargets, options);
 		const path = res.path;
-		if (addTargetPos && !res.incomplete) {
+		if (res.incomplete) {
+			if (Utils.isPosExit(path[path.length - 1])) {
+				// prevent stepping inside a room if incomplete path ends there (caused entering rooms from avoid list)
+				// remove last position from a path
+				path.pop();
+			}
+		} else if (addTargetPos) {
 			path.push(targetPos);
 		}
 		if (
