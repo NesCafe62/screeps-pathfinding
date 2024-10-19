@@ -1,6 +1,6 @@
 {
   "name": "screeps-pathfinding",
-  "version": "2.2.2",
+  "version": "2.3.0",
   "description": "A pathfinding solution for screeps. Inspired by Traveler.",
   "main": "pathing.js",
   "scripts": {
