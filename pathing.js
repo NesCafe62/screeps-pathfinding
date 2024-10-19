@@ -22,7 +22,7 @@ const TERRAIN_COST = {
 	[TERRAIN_MASK_WALL | TERRAIN_MASK_SWAMP]: 255,
 };
 
-const ROOM_PATTERN_HIGHWAY = /^[WE][0-9]?0[NS][0-9]?0$/;
+const isRoomHighway = (roomName) => roomName.includes('0');
 
 class TerrainMatrix {
 
@@ -877,7 +877,7 @@ class PathingManager {
 
 	findRoute(startPos, targetPos, options = {}) {
 		const routeCallback = options.routeCallback || ((roomName) => {
-			return roomName.match(ROOM_PATTERN_HIGHWAY) ? 1 : 2.5;
+			return isRoomHighway(roomName) ? 1 : 1.5;
 		});
 		const avoidRooms = options.avoidRooms || [];
 		return Game.map.findRoute(startPos, targetPos, {
