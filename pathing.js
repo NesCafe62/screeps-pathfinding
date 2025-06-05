@@ -547,7 +547,7 @@ class PathingManager {
 					if (!obstacleCreep) {
 						// not own creep
 						if (!pathEnd && !pushed) {
-							pathEnd = this.getPathEnd(creepPos, creep.memory._m.path);
+							pathEnd = this.getPathEnd(creepPos, creep.memory._m[5]);
 						}
 						const movePos = this.getCreepMovePos(instance, priority, moves, pathEnd);
 						move.pos = movePos || Utils.posToCoords(creepPos);
