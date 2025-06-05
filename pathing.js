@@ -662,11 +662,12 @@ class PathingManager {
 
 		let movePos, minCost;
 		for (const pos of this.getAdjacentPositions(creepPos)) {
-			let cost = matrix.get(pos.x, pos.y) || terrain.getCost(pos.x, pos.y);
+			const {x, y} = pos;
+			let cost = matrix.get(x, y) || terrain.getCost(x, y);
 			if (cost === 255 || this.hasMove(pos, moves, priority)) {
 				continue;
 			}
-			if (this.hasObstacleCreep(room, pos.x, pos.y)) {
+			if (this.hasObstacleCreep(room, x, y)) {
 				cost = 1000;
 			} else if (pathEnd) {
 				cost += Utils.getRange(pos, pathEnd) * 10;
@@ -687,11 +688,12 @@ class PathingManager {
 
 		let movePos, minCost;
 		for (const pos of this.getAdjacentPositions(creepPos)) {
-			let cost = matrix.get(pos.x, pos.y) || terrain.getCost(pos.x, pos.y);
+			const {x, y} = pos;
+			let cost = matrix.get(x, y) || terrain.getCost(x, y);
 			if (cost === 255 || this.hasMove(pos, moves, priority)) {
 				continue;
 			}
-			if (this.hasObstacleCreep(room, pos.x, pos.y)) {
+			if (this.hasObstacleCreep(room, x, y)) {
 				cost = 1000;
 			} else {
 				if (preferOffRoad && cost <= 2) {
@@ -723,11 +725,12 @@ class PathingManager {
 
 		let movePos, minCost;
 		for (const pos of this.getAdjacentPositions(creepPos)) {
-			let cost = matrix.get(pos.x, pos.y) || terrain.getCost(pos.x, pos.y);
+			const {x, y} = pos;
+			let cost = matrix.get(x, y) || terrain.getCost(x, y);
 			if (cost === 255 || cost === 1 || this.hasMoveWithOffRoad(pos, moves, priority)) {
 				continue;
 			}
-			if (this.hasObstacleCreep(room, pos.x, pos.y)) {
+			if (this.hasObstacleCreep(room, x, y)) {
 				cost = 1000;
 			} else {
 				if (targetInfo && Utils.getRange(pos, targetInfo.pos) > targetInfo.range) {
@@ -787,8 +790,8 @@ class PathingManager {
 		} = defaultOptions;
 
 		let avoidRooms = defaultOptions.avoidRooms || [];
-		if (this.avoidRooms) {
-			avoidRooms = [...avoidRooms, ...this.avoidRooms];
+		if (this.avoidRooms.length > 0) {
+			avoidRooms = avoidRooms.concat(this.avoidRooms);
 		}
 
 		const startRoomName = startPos.roomName;
@@ -930,21 +933,22 @@ class PathingManager {
 			return [];
 		}
 
-		const targetRoomName = targetPos.roomName;
-		const terrain = TerrainCache.get(targetRoomName);
-		const matrix = roomCallback(targetRoomName);
+		const roomName = targetPos.roomName;
+		const terrain = TerrainCache.get(roomName);
+		const matrix = roomCallback(roomName);
 		const positions = [];
 		for (let x = minX; x <= maxX; x++) {
-			positions.push({x: x, y: minY, roomName: targetRoomName});
-			positions.push({x: x, y: maxY, roomName: targetRoomName});
+			positions.push({x: x, y: minY, roomName});
+			positions.push({x: x, y: maxY, roomName});
 		}
 		for (let y = minY + 1; y <= maxY - 1; y++) {
-			positions.push({x: minX, y: y, roomName: targetRoomName});
-			positions.push({x: maxX, y: y, roomName: targetRoomName});
+			positions.push({x: minX, y: y, roomName});
+			positions.push({x: maxX, y: y, roomName});
 		}
 		const targets = [];
 		for (const pos of positions) {
-			const cost = (matrix && matrix.get(pos.x, pos.y)) || terrain.getCost(pos.x, pos.y);
+			const {x, y} = pos;
+			const cost = (matrix && matrix.get(x, y)) || terrain.getCost(x, y);
 			if (cost < 255) {
 				targets.push({pos, range: 0});
 			}
@@ -960,7 +964,8 @@ class PathingManager {
 			if (pos.roomName !== roomName) {
 				break;
 			}
-			let cost = matrix.get(pos.x, pos.y) || terrain.getCost(pos.x, pos.y);
+			const {x: posX, y: posY} = pos; 
+			let cost = matrix.get(posX, posY) || terrain.getCost(posX, posY);
 			if (
 				i >= 2 && cost === 1 &&
 				costs[i - 1] !== 1 &&
