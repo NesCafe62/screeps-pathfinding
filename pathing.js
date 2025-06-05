@@ -696,8 +696,12 @@ class PathingManager {
 			if (this.hasObstacleCreep(room, x, y)) {
 				cost = 1000;
 			} else {
-				if (preferOffRoad && cost <= 2) {
-					cost = (cost === 1) ? 2 : 1;
+				if (cost <= 2) {
+					if (preferOffRoad) {
+						cost = (cost === 1) ? 2 : 1;
+					} else {
+						cost = 1;
+					}
 				}
 				if (targetInfo) {
 					const range = Utils.getRange(pos, targetInfo.pos);
